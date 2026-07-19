@@ -259,18 +259,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
 </div>
 <div class="container">
 
-<!-- Admin: quick code entry -->
-<div class="card hidden" id="adminCodeCard" style="background:#fffef5;">
-  <details>
-    <summary style="cursor:pointer;font-size:13px;font-weight:600;">🔧 管理员：输入客户分享码查看完整方案</summary>
-    <div style="display:flex;gap:8px;margin-top:8px;">
-      <input id="adminCodeInput" placeholder="粘贴客户分享码..." style="flex:1;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:13px;font-family:monospace;">
-      <button class="btn btn-primary" onclick="adminLoadCode()" style="flex:0 0 auto;">加载方案</button>
-    </div>
-    <div id="adminCodeMsg" style="font-size:11px;margin-top:4px;color:var(--text-light);"></div>
-  </details>
+<!-- ===== ADMIN LANDING: full-screen code entry ===== -->
+<div class="card hidden" id="adminLanding" style="text-align:center;padding:30px 18px;">
+  <div style="font-size:48px;margin-bottom:8px;">🔧</div>
+  <h2 style="margin-bottom:4px;">管理员控制台</h2>
+  <p class="subtitle">粘贴客户分享码，一键还原完整饮食方案（含全部5套搭配）</p>
+  <div style="max-width:500px;margin:12px auto;">
+    <input id="adminCodeInput" placeholder="在此粘贴客户分享码..." style="width:100%;padding:14px;border:2px solid var(--primary);border-radius:10px;font-size:14px;font-family:monospace;text-align:center;">
+  </div>
+  <button class="btn btn-primary" onclick="adminLoadCode()" style="font-size:16px;padding:14px 40px;">🎯 加载方案</button>
+  <div id="adminCodeMsg" style="font-size:12px;margin-top:8px;"></div>
+  <div style="margin-top:16px;font-size:11px;color:var(--text-light);">
+    也支持链接直达：<code style="background:#f0f0f0;padding:2px 6px;border-radius:4px;">?code=分享码&admin=true</code>
+    <br><br><a href="javascript:exitAdminMode()" style="color:var(--primary);">📝 手动创建新方案</a>
+  </div>
 </div>
 
+<!-- Regular content: hidden in admin mode until code loaded or manual mode -->
+<div id="mainContent">
 <div class="steps-indicator" id="stepsBar">
   <div class="step-dot active" data-step="1"><span class="num">1</span>减脂基调</div>
   <div class="step-dot" data-step="2"><span class="num">2</span>身体数据</div>
@@ -419,6 +425,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
   </div>
 </div>
 
+</div><!-- /mainContent -->
 </div><!-- /container -->
 
 <!-- MODAL: locked plan -->
@@ -470,7 +477,18 @@ function checkAdmin(){
   return sessionStorage.getItem('admin')==='1';
 }
 const IS_ADMIN=checkAdmin();
-if(IS_ADMIN){document.getElementById('adminBadge').classList.remove('hidden');document.getElementById('adminCodeCard').classList.remove('hidden');}
+if(IS_ADMIN){
+  document.getElementById('adminBadge').classList.remove('hidden');
+  // Show admin landing, hide regular content until code is loaded or manual mode
+  document.getElementById('adminLanding').classList.remove('hidden');
+  document.getElementById('mainContent').classList.add('hidden');
+}
+
+function exitAdminMode(){
+  document.getElementById('adminLanding').classList.add('hidden');
+  document.getElementById('mainContent').classList.remove('hidden');
+  goStep(1);
+}
 
 // ===================== DISHES DATABASE =====================
 const DISHES = [
@@ -1287,6 +1305,11 @@ function adminLoadCode(){
   if(loadFromCode(code)){
     msg.textContent='✅ 加载成功！方案已还原。';
     msg.style.color='#2E7D32';
+    // Switch from admin landing to result view
+    document.getElementById('adminLanding').classList.add('hidden');
+    document.getElementById('mainContent').classList.remove('hidden');
+    // Mark all steps done
+    for(let i=1;i<=6;i++){const d=document.querySelector('.step-dot[data-step="'+i+'"]');if(d)d.classList.add('done');d.classList.remove('active');}
     generateFivePlans();
     renderExerciseStep();
     generateFinal();
@@ -1311,11 +1334,15 @@ updateDeficitOptions();
   const url=new URL(window.location.href);
   const code=url.searchParams.get('code');
   if(code&&loadFromCode(code)){
-    // Auto-generate everything: go to step 6 and generate final
+    // Switch away from admin landing if present
+    document.getElementById('adminLanding').classList.add('hidden');
+    document.getElementById('mainContent').classList.remove('hidden');
+    for(let i=1;i<=6;i++){const d=document.querySelector('.step-dot[data-step="'+i+'"]');if(d)d.classList.add('done');d.classList.remove('active');}
     generateFivePlans();
     renderExerciseStep();
     generateFinal();
     if(IS_ADMIN)document.getElementById('finalResult').classList.remove('hidden');
+    document.getElementById('finalResult').scrollIntoView({behavior:'smooth'});
   }
 })();
 
