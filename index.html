@@ -418,10 +418,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
 <div class="card hidden" id="finalResult">
   <h2>📋 你的完整减脂方案</h2>
   <div id="finalContent"></div>
-  <div class="export-bar">
-    <button class="btn btn-accent" onclick="copyPlanText()">📋 复制A方案文本</button>
-    <button class="btn btn-lock" onclick="showMoreModal()">🎁 免费获取更多替代方案及减脂指导</button>
-    <span style="font-size:10px;color:var(--text-light);display:block;width:100%;text-align:center;">（PDF导出请在浏览器中按 Ctrl+P → 另存为PDF）</span>
+  <div class="export-bar" id="exportBar">
+    <button class="btn btn-accent" onclick="copyPlanText()">📋 复制A方案</button>
+    <button class="btn btn-primary hidden" id="btnExportPDF" onclick="exportPDF()">📄 导出PDF</button>
+    <button class="btn btn-outline hidden" id="btnExportWord" onclick="exportWord()">📝 导出Word</button>
+    <button class="btn btn-lock" onclick="showMoreModal()">🎁 更多方案</button>
   </div>
 </div>
 
@@ -1124,6 +1125,11 @@ function generateFinal(){
   h+='<div style="font-size:10px;color:var(--text-light);margin-top:6px;">将分享码附加到链接：<code>?code='+code+'&admin=true</code> 即可查看全部5套方案</div></div>';
 
   document.getElementById('finalContent').innerHTML=h;
+  // Show admin export buttons
+  if(IS_ADMIN){
+    document.getElementById('btnExportPDF').classList.remove('hidden');
+    document.getElementById('btnExportWord').classList.remove('hidden');
+  }
   document.getElementById('finalResult').scrollIntoView({behavior:'smooth'});
   if(window._hmt)_hmt.push(['_trackEvent','final','generate','完成_'+S.approach]);
 }
@@ -1206,6 +1212,165 @@ function copyPlanText(){
     if(window._hmt)_hmt.push(['_trackEvent','export','copyText']);
     alert('✅ A方案已复制！\n\n可粘贴到：\n• 微信/QQ发送给别人\n• Word文档(Ctrl+V)\n• 手机备忘录\n• 任意笔记软件\n\n💡 B/C/D/E方案入群免费获取。');
   }).catch(()=>alert('复制失败，请手动选择文字复制'));
+}
+
+// ===================== PDF EXPORT =====================
+function exportPDF(){
+  if(!S.fivePlans){alert('⚠️ 请先生成饮食计划！');return;}
+  const mode=EXERCISES[S.exMode];
+  const w=S.weight;
+  const approachLabel=S.approach==='rapid'?'⚡ 快速减重':'🎯 规范减脂';
+  const modeNames={lowcarb:'低碳减脂',highcarb:'高碳减脂',cycle:'碳循环'};
+
+  // Build print-optimized HTML with all 5 plans
+  let html='<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>减脂饮食方案</title>';
+  html+='<style>';
+  html+='*{margin:0;padding:0;box-sizing:border-box;}';
+  html+='body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:12px;color:#222;line-height:1.7;padding:20px 30px;max-width:800px;margin:0 auto;}';
+  html+='.cover{text-align:center;padding:60px 0;border-bottom:3px solid #4CAF50;margin-bottom:30px;page-break-after:always;}';
+  html+='.cover h1{font-size:26px;color:#2E7D32;margin-bottom:8px;}';
+  html+='.cover .sub{font-size:14px;color:#666;}';
+  html+='.cover .info{font-size:12px;color:#999;margin-top:20px;}';
+  html+='h2{font-size:16px;color:#2E7D32;border-bottom:2px solid #4CAF50;padding-bottom:4px;margin:20px 0 10px;page-break-after:avoid;}';
+  html+='h3{font-size:14px;color:#333;margin:14px 0 6px;page-break-after:avoid;}';
+  html+='h4{font-size:13px;background:#f0f4f8;padding:6px 10px;border-radius:4px;margin:10px 0 6px;page-break-after:avoid;}';
+  html+='table{width:100%;border-collapse:collapse;margin:8px 0;font-size:11px;}';
+  html+='table th{background:#4CAF50;color:#fff;padding:6px 8px;text-align:left;}';
+  html+='table td{padding:5px 8px;border-bottom:1px solid #e0e5ec;}';
+  html+='.meal-block{background:#fafbfc;border:1px solid #e0e5ec;border-radius:6px;padding:10px 12px;margin:8px 0;page-break-inside:avoid;}';
+  html+='.meal-block .mtotal{font-weight:700;color:#E65100;margin-top:6px;padding-top:6px;border-top:1px dashed #ddd;}';
+  html+='.dish-row{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px dotted #eee;}';
+  html+='.dish-row:last-child{border-bottom:none;}';
+  html+='.dish-icon{font-size:20px;flex-shrink:0;}';
+  html+='.dish-info{flex:1;}';
+  html+='.dish-info .dn{font-weight:600;}';
+  html+='.dish-info .di{font-size:10px;color:#666;}';
+  html+='.dish-info .dc{font-size:10px;color:#4CAF50;}';
+  html+='.dish-kcal{text-align:right;font-weight:700;font-size:14px;color:#333;flex-shrink:0;}';
+  html+='.ex-item{display:flex;gap:8px;padding:4px 0;align-items:center;}';
+  html+='.ex-icon{font-size:18px;}';
+  html+='.footer{text-align:center;color:#999;font-size:10px;margin-top:30px;padding-top:15px;border-top:2px solid #e0e5ec;}';
+  html+='.plan-section{page-break-before:always;}';
+  html+='.plan-section:first-of-type{page-break-before:auto;}';
+  html+='@media print{body{padding:0;}@page{margin:15mm;}}';
+  html+='</style></head><body>';
+
+  // Cover
+  html+='<div class="cover"><h1>🥗 科学减脂饮食方案</h1><div class="sub">'+approachLabel+' · '+modeNames[S.dietMode]+'</div>';
+  html+='<div class="info">性别：'+(S.gender==='male'?'男':'女')+' ｜ 年龄：'+S.age+'岁 ｜ 身高：'+S.height+'cm ｜ 体重：'+S.weight+'kg<br>';
+  html+='BMR：'+S.bmr+' kcal/天 ｜ TDEE：'+S.tdee+' kcal/天<br>';
+  html+='每日摄入：'+S.dailyTarget+' kcal ｜ 缺口：'+(S.tdee-S.dailyTarget)+' kcal ｜ 月减：'+S.monthlyLoss.toFixed(1)+' kg<br>';
+  html+='© 2026 瑞驰健康科技公司</div></div>';
+
+  // All 5 plans
+  S.fivePlans.forEach((plan,pi)=>{
+    html+='<div class="plan-section"><h2>搭配方案'+(pi===0?'A（免费版）':String.fromCharCode(65+pi))+' — '+plan.name+'</h2>';
+    html+='<p style="color:#666;font-size:11px;">'+plan.desc+' ｜ 约 '+plan.totalKcal+' kcal/天</p>';
+
+    plan.meals.forEach(meal=>{
+      html+='<h4>'+meal.name+'  <span style="font-weight:400;color:#666;">~'+meal.mealKcal+' kcal</span></h4>';
+      html+='<div class="meal-block">';
+      meal.dishes.forEach(d=>{
+        const m=d.multiplier||1;
+        const kcal=Math.round((d.kcal||0)*m);
+        const pro=Math.round((d.pro||0)*m*10)/10;
+        const carb=Math.round((d.carbs||0)*m*10)/10;
+        const fat=Math.round((d.fat||0)*m*10)/10;
+        html+='<div class="dish-row"><div class="dish-icon">'+(d.icon||'🍽️')+'</div><div class="dish-info"><div class="dn">'+(d.name||'')+'</div><div class="di">食材：'+(d.ingredients||'').replace(/·/g,'、')+'</div><div class="dc">👨‍🍳 '+(d.cooking||'')+'</div></div><div class="dish-kcal">'+kcal+' kcal<div style="font-size:10px;color:#999;">C'+carb+' P'+pro+' F'+fat+'</div></div></div>';
+      });
+      html+='<div class="mtotal">🔥 '+meal.mealKcal+' kcal ｜ 🌾碳水'+meal.mealCarb.toFixed(0)+'g ｜ 🥩蛋白'+meal.mealPro.toFixed(0)+'g ｜ 🧈脂肪'+meal.mealFat.toFixed(0)+'g</div>';
+      html+='</div>';
+    });
+    html+='</div>';
+  });
+
+  // Exercise
+  html+='<h2>🏃 运动计划 — '+mode.name+'</h2>';
+  mode.items.forEach(e=>{
+    const hours=parseFloat(e.unit.match(/(\d+)/)?.[1]||30)/60;
+    const kcal=Math.round(w*e.mets*hours*(e.unit.includes('组')?1.5:1));
+    html+='<div class="ex-item"><span class="ex-icon">'+e.icon+'</span><span><strong>'+e.name+'</strong> — '+e.unit+' ｜ '+e.how+' ｜ '+e.freq+'</span><span style="margin-left:auto;font-weight:700;color:#E65100;">~'+kcal+' kcal</span></div>';
+  });
+
+  // Footer
+  html+='<div class="footer">© 2026 瑞驰健康科技公司 版权所有<br>不折腾 · 买得到 · 做得来 · 吃得饱</div>';
+  html+='</body></html>';
+
+  // Open in new window and print
+  const pw=window.open('','_blank','width=800,height=600');
+  if(!pw){alert('⚠️ 弹窗被拦截，请允许本站弹窗后重试。');return;}
+  pw.document.write(html);
+  pw.document.close();
+  pw.onload=function(){pw.print();};
+  if(window._hmt)_hmt.push(['_trackEvent','export','PDF']);
+}
+
+// ===================== WORD EXPORT =====================
+function exportWord(){
+  if(!S.fivePlans){alert('⚠️ 请先生成饮食计划！');return;}
+  const mode=EXERCISES[S.exMode];
+  const w=S.weight;
+  const approachLabel=S.approach==='rapid'?'快速减重':'规范减脂';
+  const modeNames={lowcarb:'低碳减脂',highcarb:'高碳减脂',cycle:'碳循环'};
+
+  let html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8">';
+  html+='<style>@page{size:A4;margin:2cm;}body{font-family:"微软雅黑","PingFang SC",sans-serif;font-size:12pt;color:#333;line-height:2;}';
+  html+='h1{font-size:20pt;color:#2E7D32;text-align:center;border-bottom:3px solid #4CAF50;padding-bottom:8pt;}';
+  html+='h2{font-size:14pt;color:#2E7D32;border-bottom:1px solid #4CAF50;padding-bottom:3pt;margin-top:18pt;}';
+  html+='h3{font-size:13pt;color:#555;margin-top:12pt;}';
+  html+='h4{font-size:12pt;background:#f0f4f8;padding:4pt 8pt;}';
+  html+='table{width:100%;border-collapse:collapse;margin:8pt 0;}';
+  html+='table th{background:#4CAF50;color:#fff;padding:4pt 6pt;text-align:left;font-size:10pt;}';
+  html+='table td{padding:3pt 6pt;border-bottom:1px solid #ddd;font-size:10pt;}';
+  html+='.dish-item{margin:4pt 0;padding:4pt 6pt;border-left:3px solid #4CAF50;}';
+  html+='.plan-break{page-break-before:always;}';
+  html+='</style></head><body>';
+
+  html+='<h1>🥗 科学减脂饮食方案</h1>';
+  html+='<p style="text-align:center;color:#666;">'+approachLabel+' · '+modeNames[S.dietMode]+'</p>';
+  html+='<table><tr><th>性别</th><td>'+(S.gender==='male'?'男':'女')+'</td><th>年龄</th><td>'+S.age+'岁</td><th>身高</th><td>'+S.height+'cm</td><th>体重</th><td>'+S.weight+'kg</td></tr>';
+  html+='<tr><th>BMR</th><td>'+S.bmr+' kcal</td><th>TDEE</th><td>'+S.tdee+' kcal</td><th>目标摄入</th><td>'+S.dailyTarget+' kcal</td><th>月减</th><td>'+S.monthlyLoss.toFixed(1)+' kg</td></tr></table>';
+
+  // All 5 plans
+  S.fivePlans.forEach((plan,pi)=>{
+    html+='<div class="plan-break"><h2>搭配方案'+(pi===0?'A（免费版）':String.fromCharCode(65+pi))+'：'+plan.name+'</h2>';
+    html+='<p style="color:#666;">'+plan.desc+' ｜ 约 '+plan.totalKcal+' kcal/天</p>';
+
+    plan.meals.forEach(meal=>{
+      html+='<h4>'+meal.name+'  (~'+meal.mealKcal+' kcal)</h4>';
+      meal.dishes.forEach(d=>{
+        const m=d.multiplier||1;
+        const kcal=Math.round((d.kcal||0)*m);
+        html+='<div class="dish-item"><strong>'+(d.icon||'')+' '+(d.name||'')+'</strong> ['+kcal+' kcal]<br>';
+        html+='<span style="font-size:10pt;color:#666;">食材：'+(d.ingredients||'').replace(/·/g,'、')+'</span><br>';
+        html+='<span style="font-size:10pt;color:#4CAF50;">做法：'+(d.cooking||'')+'</span></div>';
+      });
+      html+='<p style="font-size:11pt;color:#E65100;"><strong>小计：🔥 '+meal.mealKcal+' kcal ｜ 🌾'+meal.mealCarb.toFixed(0)+'g ｜ 🥩'+meal.mealPro.toFixed(0)+'g ｜ 🧈'+meal.mealFat.toFixed(0)+'g</strong></p>';
+    });
+    html+='</div>';
+  });
+
+  // Exercise
+  html+='<h2>🏃 运动计划 — '+mode.name+'</h2>';
+  html+='<table><tr><th>运动</th><th>时长</th><th>做法</th><th>频率</th><th>消耗</th></tr>';
+  mode.items.forEach(e=>{
+    const hours=parseFloat(e.unit.match(/(\d+)/)?.[1]||30)/60;
+    const kcal=Math.round(w*e.mets*hours*(e.unit.includes('组')?1.5:1));
+    html+='<tr><td>'+e.icon+' '+e.name+'</td><td>'+e.unit+'</td><td>'+e.how+'</td><td>'+e.freq+'</td><td>~'+kcal+' kcal</td></tr>';
+  });
+  html+='</table>';
+
+  html+='<p style="text-align:center;color:#999;margin-top:20pt;">© 2026 瑞驰健康科技公司 版权所有</p>';
+  html+='</body></html>';
+
+  // Download as .doc
+  const blob=new Blob(['﻿'+html],{type:'application/msword;charset=UTF-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='减脂饮食方案_'+S.weight+'kg_'+S.dailyTarget+'kcal.doc';
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+  if(window._hmt)_hmt.push(['_trackEvent','export','Word']);
 }
 
 // ===================== SHARE CODE =====================
