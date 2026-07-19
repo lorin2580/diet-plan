@@ -1019,10 +1019,6 @@ function switchPlan(idx){
 
 // ===================== STEP 6: EXERCISE =====================
 function renderExerciseStep(){
-  // Recommend mode based on approach
-  if(S.approach==='rapid'&&S.exMode==='gym')S.exMode='cardio';
-  if(S.approach==='standard'&&S.exMode==='health')S.exMode='cardio';
-
   let note='';
   if(S.approach==='rapid'){
     note='<div class="info-box"><strong>⚡ 快速减重运动建议：</strong>以有氧运动为主，最大化热量消耗。推荐<strong>积极有氧模式</strong>或养生模式，配合日常多走动。</div>';
@@ -1091,7 +1087,7 @@ function generateFinal(){
   h+='<strong>运动模式：</strong>'+mode.name+' ｜ 每周额外消耗 ~'+totalExKcal+' kcal<br>';
   h+='<strong>预计月减：</strong>饮食'+(S.monthlyLoss).toFixed(1)+'kg + 运动'+(totalExKcal*4/7700).toFixed(1)+'kg ≈ <strong style="color:#E65100;">'+(S.monthlyLoss+totalExKcal*4/7700).toFixed(1)+' kg</strong>';
   h+='</div></div>';
-  h+='<div class="info-box"><strong>💡 提示：</strong>上方步骤5可查看A方案完整饮食计划（含三餐×3套子方案）。步骤6可切换运动模式。B/C/D/E方案点击后入群免费获取。</div>';
+  h+='<div class="info-box"><strong>💡 提示：</strong>上方步骤5可查看A方案完整饮食计划（三餐×5套搭配）。步骤6可切换运动模式。B/C/D/E方案点击后入群免费获取。</div>';
 
   document.getElementById('finalContent').innerHTML=h;
   document.getElementById('finalResult').scrollIntoView({behavior:'smooth'});
