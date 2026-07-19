@@ -827,7 +827,6 @@ function buildPlanWithSeed(targetProtein,targetCarb,targetFat,seed){
   let soups=filterDishesByApproach(getMyDishesSafe('soup'));
   let snacks=filterDishesByApproach(getMyDishesSafe('snack'));
 
-  const labels=['A','B','C'];
   const allMeals=[];
 
   meals.forEach((meal,mi)=>{
@@ -835,7 +834,7 @@ function buildPlanWithSeed(targetProtein,targetCarb,targetFat,seed){
     const isBreakfast=meal.name.includes('早餐');
     const isDinner=meal.name.includes('晚餐');
 
-    // Each meal gets a sub-seed for variation
+    // Each meal gets a sub-seed → different dishes per plan
     const s0=seed+mi*100;
     const shuffledBf=seededShuffle(bf,s0);
     const shuffledMeats=seededShuffle(meats,s0+1);
@@ -844,51 +843,48 @@ function buildPlanWithSeed(targetProtein,targetCarb,targetFat,seed){
     const shuffledSoups=seededShuffle(soups,s0+4);
     const shuffledSnacks=seededShuffle(snacks,s0+5);
 
-    const options=[];
-    for(let opt=0;opt<3;opt++){
-      const subSeed=s0+opt*10;
-      const dishes=[];
-      if(isBreakfast){
-        const pick=shuffledBf[opt%Math.max(1,shuffledBf.length)];
-        const scale=Math.round(Math.max(0.7,Math.min(1.8,mealKcalTarget/(pick?.kcal||300)))*10)/10;
-        dishes.push({...pick,multiplier:scale});
+    // Single dish combo per meal (variety comes from the 5 plans, not sub-options)
+    const dishes=[];
+    if(isBreakfast){
+      const pick=shuffledBf[0];
+      const scale=Math.round(Math.max(0.7,Math.min(1.8,mealKcalTarget/(pick?.kcal||300)))*10)/10;
+      dishes.push({...pick,multiplier:scale});
+    }else{
+      // Staple
+      let staplePick;
+      if(isDinner){
+        staplePick=shuffledStaples[0];
       }else{
-        // Staple
-        let staplePick;
-        if(isDinner){
-          staplePick=shuffledStaples[opt%Math.max(1,shuffledStaples.length)];
-        }else{
-          if(opt===0)staplePick=staples.find(s=>s.id==='rice')||shuffledStaples[0];
-          else if(opt===2&&shuffledSnacks.length>0)staplePick=shuffledSnacks[opt%shuffledSnacks.length];
-          else staplePick=shuffledStaples[opt%Math.max(1,shuffledStaples.length)];
-        }
-        const sScale=Math.round(Math.max(0.7,Math.min(1.8,meal.carb*0.6/(staplePick?.carbs||30)))*10)/10;
-        dishes.push({...staplePick,multiplier:sScale});
-
-        // Meat
-        const meatPick=shuffledMeats[opt%Math.max(1,shuffledMeats.length)];
-        const usedPro=dishes.reduce((s,d)=>s+(d.pro||0)*(d.multiplier||1),0);
-        const mScale=Math.round(Math.max(0.7,Math.min(2.0,(meal.pro-usedPro)/(meatPick?.pro||15)))*10)/10;
-        dishes.push({...meatPick,multiplier:mScale});
-
-        // Veggie
-        const vegPick=shuffledVeggies[opt%Math.max(1,shuffledVeggies.length)];
-        dishes.push({...vegPick,multiplier:1.0});
-
-        // Soup occasionally (deterministic per option)
-        if(shuffledSoups.length>0&&(subSeed%3===0)){
-          dishes.push({...shuffledSoups[0],multiplier:1.0});
-        }
+        // Lunch: use seed to decide staple type
+        if(s0%3===0)staplePick=staples.find(s=>s.id==='rice')||shuffledStaples[0];
+        else if(s0%3===1&&shuffledSnacks.length>0)staplePick=shuffledSnacks[0];
+        else staplePick=shuffledStaples[s0%shuffledStaples.length];
       }
+      const sScale=Math.round(Math.max(0.7,Math.min(1.8,meal.carb*0.6/(staplePick?.carbs||30)))*10)/10;
+      dishes.push({...staplePick,multiplier:sScale});
 
-      const mealPro=dishes.reduce((s,d)=>s+(d.pro||0)*(d.multiplier||1),0);
-      const mealCarb=dishes.reduce((s,d)=>s+(d.carbs||0)*(d.multiplier||1),0);
-      const mealFat=dishes.reduce((s,d)=>s+(d.fat||0)*(d.multiplier||1),0);
-      const mealKcal=Math.round(mealPro*4+mealCarb*4+mealFat*9);
+      // Meat
+      const meatPick=shuffledMeats[0];
+      const usedPro=dishes.reduce((s,d)=>s+(d.pro||0)*(d.multiplier||1),0);
+      const mScale=Math.round(Math.max(0.7,Math.min(2.0,(meal.pro-usedPro)/(meatPick?.pro||15)))*10)/10;
+      dishes.push({...meatPick,multiplier:mScale});
 
-      options.push({label:labels[opt],dishes,mealKcal,mealPro,mealCarb,mealFat});
+      // Veggie
+      const vegPick=shuffledVeggies[0];
+      dishes.push({...vegPick,multiplier:1.0});
+
+      // Soup occasionally
+      if(shuffledSoups.length>0&&(s0%3===0)){
+        dishes.push({...shuffledSoups[0],multiplier:1.0});
+      }
     }
-    allMeals.push({name:meal.name,options});
+
+    const mealPro=dishes.reduce((s,d)=>s+(d.pro||0)*(d.multiplier||1),0);
+    const mealCarb=dishes.reduce((s,d)=>s+(d.carbs||0)*(d.multiplier||1),0);
+    const mealFat=dishes.reduce((s,d)=>s+(d.fat||0)*(d.multiplier||1),0);
+    const mealKcal=Math.round(mealPro*4+mealCarb*4+mealFat*9);
+
+    allMeals.push({name:meal.name,dishes,mealKcal,mealPro,mealCarb,mealFat});
   });
 
   return allMeals;
@@ -980,47 +976,37 @@ function renderFivePlans(plansData){
 
 function renderMealHTML(planData){
   let h='';
-  let mealIdx=0;
   planData.meals.forEach(meal=>{
-    const mealId='m'+mealIdx; mealIdx++;
-    h+='<div class="meal-day"><h4>'+meal.name+' <span style="font-size:12px;color:var(--text-light);font-weight:400;">三套子方案可选</span></h4>';
-    h+='<div class="option-tabs">';
-    meal.options.forEach((opt,i)=>{
-      h+='<button class="option-tab'+(i===0?' active':'')+'" onclick="switchMealOption(\''+mealId+'\','+i+')">'+opt.label+'方案<span class="opt-kcal"> ~'+opt.mealKcal+'kcal</span></button>';
-    });
-    h+='</div>';
-    meal.options.forEach((opt,i)=>{
-      h+='<div class="option-panel'+(i===0?' active':'')+'" id="'+mealId+'_'+i+'"><div class="meal-box">';
-      opt.dishes.forEach(d=>{
-        const m=d.multiplier||1;
-        const kcal=Math.round((d.kcal||0)*m);
-        const pro=Math.round((d.pro||0)*m*10)/10;
-        const carb=Math.round((d.carbs||0)*m*10)/10;
-        const fat=Math.round((d.fat||0)*m*10)/10;
-        let portion=m>=0.9&&m<=1.1?'（标准份）':m<0.9?'（小份，'+(m*100).toFixed(0)+'%）':'（加大份，'+(m*100).toFixed(0)+'%）';
-        const oilG=Math.round((d.oil||0)*m);
-        const sugarG=Math.round((d.sugar||0)*m);
+    h+='<div class="meal-day"><h4>'+meal.name+' <span style="font-size:12px;color:var(--text-light);font-weight:400;">~'+meal.mealKcal+' kcal</span></h4>';
+    h+='<div class="meal-box">';
+    meal.dishes.forEach(d=>{
+      const m=d.multiplier||1;
+      const kcal=Math.round((d.kcal||0)*m);
+      const pro=Math.round((d.pro||0)*m*10)/10;
+      const carb=Math.round((d.carbs||0)*m*10)/10;
+      const fat=Math.round((d.fat||0)*m*10)/10;
+      let portion=m>=0.9&&m<=1.1?'（标准份）':m<0.9?'（小份，'+(m*100).toFixed(0)+'%）':'（加大份，'+(m*100).toFixed(0)+'%）';
+      const oilG=Math.round((d.oil||0)*m);
+      const sugarG=Math.round((d.sugar||0)*m);
 
-        let ingText='';
-        if(d.ingredients){
-          d.ingredients.split('·').forEach(part=>{
-            const t=part.trim();
-            const s=t.replace(/(\d+)g/g,(_,n)=>Math.round(parseInt(n)*m)+'g')
-              .replace(/(\d+)个/g,(_,n)=>Math.max(1,Math.round(parseInt(n)*m))+'个')
-              .replace(/(\d+)只/g,(_,n)=>Math.max(1,Math.round(parseInt(n)*m))+'只')
-              .replace(/(\d+)根/g,(_,n)=>Math.max(1,Math.round(parseInt(n)*m))+'根')
-              .replace(/(\d+)张/g,(_,n)=>Math.max(1,Math.round(parseInt(n)*m))+'张');
-            ingText+=s+' · ';
-          });
-          ingText=ingText.replace(/· $/,'');
-        }
+      let ingText='';
+      if(d.ingredients){
+        d.ingredients.split('·').forEach(part=>{
+          const t=part.trim();
+          const s=t.replace(/(\d+)g/g,(_,n)=>Math.round(parseInt(n)*m)+'g')
+            .replace(/(\d+)个/g,(_,n)=>Math.max(1,Math.round(parseInt(n)*m))+'个')
+            .replace(/(\d+)只/g,(_,n)=>Math.max(1,Math.round(parseInt(n)*m))+'只')
+            .replace(/(\d+)根/g,(_,n)=>Math.max(1,Math.round(parseInt(n)*m))+'根')
+            .replace(/(\d+)张/g,(_,n)=>Math.max(1,Math.round(parseInt(n)*m))+'张');
+          ingText+=s+' · ';
+        });
+        ingText=ingText.replace(/· $/,'');
+      }
 
-        let tips=(oilG>0?'🛢油'+oilG+'g（'+(oilG/5).toFixed(1)+'茶匙） ':'')+(sugarG>0?'🍬糖'+sugarG+'g ':'')+(d.time||'')+'分钟';
-        h+='<div class="meal-dish"><div class="md-icon">'+(d.icon||'🍽️')+'</div><div class="md-info"><div class="md-name">'+(d.name||'')+' <span style="font-weight:400;font-size:11px;color:var(--text-light);">'+portion+'</span></div><div class="md-ingredients">📋 '+ingText+'</div><div class="md-cooking">👨‍🍳 '+(d.cooking||'')+'</div><div style="font-size:10px;color:var(--text-light);margin-top:2px;">'+tips+'</div></div><div class="md-macros"><div class="md-kcal">'+kcal+'</div><div class="md-detail">C'+carb+' P'+pro+' F'+fat+'</div></div></div>';
-      });
-      h+='<div class="meal-total"><span>🔥 <strong>'+opt.mealKcal+'</strong> kcal</span><span>🌾'+opt.mealCarb.toFixed(0)+'g</span><span>🥩'+opt.mealPro.toFixed(0)+'g</span><span>🧈'+opt.mealFat.toFixed(0)+'g</span></div></div></div>';
+      let tips=(oilG>0?'🛢油'+oilG+'g（'+(oilG/5).toFixed(1)+'茶匙） ':'')+(sugarG>0?'🍬糖'+sugarG+'g ':'')+(d.time||'')+'分钟';
+      h+='<div class="meal-dish"><div class="md-icon">'+(d.icon||'🍽️')+'</div><div class="md-info"><div class="md-name">'+(d.name||'')+' <span style="font-weight:400;font-size:11px;color:var(--text-light);">'+portion+'</span></div><div class="md-ingredients">📋 '+ingText+'</div><div class="md-cooking">👨‍🍳 '+(d.cooking||'')+'</div><div style="font-size:10px;color:var(--text-light);margin-top:2px;">'+tips+'</div></div><div class="md-macros"><div class="md-kcal">'+kcal+'</div><div class="md-detail">C'+carb+' P'+pro+' F'+fat+'</div></div></div>';
     });
-    h+='</div>';
+    h+='<div class="meal-total"><span>🔥 <strong>'+meal.mealKcal+'</strong> kcal</span><span>🌾'+meal.mealCarb.toFixed(0)+'g</span><span>🥩'+meal.mealPro.toFixed(0)+'g</span><span>🧈'+meal.mealFat.toFixed(0)+'g</span></div></div></div>';
   });
   return h;
 }
@@ -1029,12 +1015,6 @@ function switchPlan(idx){
   if(idx>0&&!IS_ADMIN){showLockModal();return;}
   document.querySelectorAll('#planTabs .plan-tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
   document.querySelectorAll('#planPanels .plan-panel').forEach((p,i)=>p.classList.toggle('active',i===idx));
-}
-
-function switchMealOption(mealId,idx){
-  const parent=document.getElementById(mealId+'_'+idx).parentNode;
-  parent.querySelectorAll('.option-tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
-  parent.querySelectorAll('.option-panel').forEach((p,i)=>p.classList.toggle('active',i===idx));
 }
 
 // ===================== STEP 6: EXERCISE =====================
@@ -1166,16 +1146,13 @@ function buildPlanText(){
   txt+='【五、每日三餐（搭配方案A）】\n\n';
   planA.meals.forEach(meal=>{
     txt+=thin+'\n  '+meal.name+'\n'+thin+'\n';
-    meal.options.forEach((opt,i)=>{
-      txt+='  ▸ '+opt.label+'方案 (~'+opt.mealKcal+' kcal)\n';
-      opt.dishes.forEach(d=>{
-        const m=d.multiplier||1;
-        const kcal=Math.round((d.kcal||0)*m);
-        txt+='    ● '+(d.icon||'')+' '+(d.name||'')+'  ['+kcal+' kcal]\n';
-        if(d.ingredients)txt+='      食材：'+d.ingredients.replace(/·/g,'|')+'\n';
-      });
-      txt+='    📊 C'+opt.mealCarb.toFixed(0)+'g P'+opt.mealPro.toFixed(0)+'g F'+opt.mealFat.toFixed(0)+'g\n';
+    meal.dishes.forEach(d=>{
+      const m=d.multiplier||1;
+      const kcal=Math.round((d.kcal||0)*m);
+      txt+='    ● '+(d.icon||'')+' '+(d.name||'')+'  ['+kcal+' kcal]\n';
+      if(d.ingredients)txt+='      食材：'+d.ingredients.replace(/·/g,'|')+'\n';
     });
+    txt+='    📊 C'+meal.mealCarb.toFixed(0)+'g P'+meal.mealPro.toFixed(0)+'g F'+meal.mealFat.toFixed(0)+'g\n';
     txt+='\n';
   });
 
