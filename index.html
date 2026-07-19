@@ -766,47 +766,43 @@ function filterDishesByApproach(dishes){
   return dishes;
 }
 
-// Score dish for a particular plan type
-function dishScore(d,planType){
-  let score=1;
-  if(planType==='B'){if(d.proteinDensity==='high')score+=2;if(S.approach==='standard'&&d.cat==='meat')score+=1;}
-  if(planType==='C'){if(d.cat==='staple')score-=1;if(d.cat==='meat'||d.cat==='veggie')score+=1;}
-  if(planType==='D'){if(d.isSeafood)score+=3;if(d.cat==='veggie')score+=1;}
-  if(planType==='E'){if(d.cat==='snack'||d.id==='rice'||d.id==='noodles')score+=2;if(d.isSeafood)score-=1;}
-  if(S.approach==='rapid'&&d.waterRetain)score-=2;
-  if(S.approach==='rapid'&&d.highPotassium)score+=1;
-  return score;
+// Seeded pseudo-random shuffle (Fisher-Yates) — same seed = same order
+function seededShuffle(arr, seed){
+  const a=[...arr];
+  let s=seed;
+  for(let i=a.length-1;i>0;i--){
+    s=(s*1664525+1013904223)&0x7fffffff;
+    const j=s%(i+1);
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
 }
 
 function generateFivePlans(){
-  const planDefs=[
-    {id:'A',name:'均衡方案',desc:'标准三大营养素分配，三餐搭配均匀，适合大多数人',type:'A'},
-    {id:'B',name:'高蛋白方案',desc:'蛋白质占比提高，优先选择高蛋白肉类，适合保留肌肉',type:'B'},
-    {id:'C',name:'低碳水方案',desc:'碳水占比降低，增加蛋白质和蔬菜，适合胰岛素抵抗',type:'C'},
-    {id:'D',name:'地中海方案',desc:'以鱼虾海鲜为主，大量蔬菜，橄榄油烹调，适合追求健康',type:'D'},
-    {id:'E',name:'中式传统方案',desc:'传统家常搭配，包子饺子面条轮换，荤素均衡',type:'E'},
+  // A/B/C/D/E are 5 different home-dish combinations under the SAME macro targets
+  const planNames=[
+    {id:'A',name:'搭配方案A',desc:'以米饭/红薯为主食，鸡肉猪肉搭配时蔬'},
+    {id:'B',name:'搭配方案B',desc:'面食/玉米轮换，牛肉鸡蛋搭配绿叶菜'},
+    {id:'C',name:'搭配方案C',desc:'杂粮粥/红薯为主，鱼虾搭配番茄西兰花'},
+    {id:'D',name:'搭配方案D',desc:'包子饺子做午餐，晚餐清淡蔬菜为主'},
+    {id:'E',name:'搭配方案E',desc:'大饼面条换口味，荤素均衡中式家常'},
   ];
 
   const w=S.weight, target=S.dailyTarget;
   let plansData=[];
 
-  planDefs.forEach(def=>{
-    let pg,cg,fg;
-    // Adjust macros per plan type
-    let pFactor=1.0, cFactor=1.0;
-    if(def.type==='B'){pFactor=1.2;cFactor=0.85;}
-    if(def.type==='C'){pFactor=1.05;cFactor=0.65;}
-    if(def.type==='D'||def.type==='E'){pFactor=1.0;cFactor=1.0;}
+  // ALL plans use identical macro targets (no per-plan adjustment)
+  const pg=Math.round(w*((S.proteinLow+S.proteinHigh)/2)*10)/10;
+  const cg=Math.round(w*((S.carbLow+S.carbHigh)/2)*10)/10;
+  const pk=pg*4, ck=cg*4;
+  const fk=Math.max(0,target-pk-ck), fgVal=Math.round(fk/9*10)/10;
 
-    pg=Math.round(w*((S.proteinLow+S.proteinHigh)/2)*pFactor*10)/10;
-    cg=Math.round(w*((S.carbLow+S.carbHigh)/2)*cFactor*10)/10;
-    const pk=pg*4, ck=cg*4;
-    const fk=Math.max(0,target-pk-ck), fgVal=Math.round(fk/9*10)/10;
-
-    const meals=buildPlanForType(pg,cg,fgVal,def.type);
+  planNames.forEach((def,i)=>{
+    // Each plan gets a different random seed → different dish combinations
+    const meals=buildPlanWithSeed(pg,cg,fgVal,i*137+42);
     const totalKcal=meals.reduce((s,m)=>s+m.mealKcal,0);
     plansData.push({
-      id:def.id,name:def.name,desc:def.desc,type:def.type,
+      id:def.id,name:def.name,desc:def.desc,
       macros:{protein:pg,carb:cg,fat:fgVal},
       totalKcal:Math.round(totalKcal),
       meals:meals
@@ -817,7 +813,7 @@ function generateFivePlans(){
   renderFivePlans(plansData);
 }
 
-function buildPlanForType(targetProtein,targetCarb,targetFat,planType){
+function buildPlanWithSeed(targetProtein,targetCarb,targetFat,seed){
   const meals=[
     {name:'🌅 早餐',pct:0.30,pro:targetProtein*0.30,carb:targetCarb*0.30,fat:targetFat*0.30},
     {name:'🍱 午餐',pct:0.40,pro:targetProtein*0.40,carb:targetCarb*0.40,fat:targetFat*0.40},
@@ -834,22 +830,23 @@ function buildPlanForType(targetProtein,targetCarb,targetFat,planType){
   const labels=['A','B','C'];
   const allMeals=[];
 
-  meals.forEach(meal=>{
+  meals.forEach((meal,mi)=>{
     const mealKcalTarget=meal.pro*4+meal.carb*4+meal.fat*9;
     const isBreakfast=meal.name.includes('早餐');
     const isDinner=meal.name.includes('晚餐');
 
-    // Sort dishes by plan type score
-    const sortByScore=(arr)=>arr.sort((a,b)=>dishScore(b,planType)-dishScore(a,planType));
-    const shuffledBf=sortByScore([...bf]);
-    const shuffledMeats=sortByScore([...meats]);
-    const shuffledVeggies=sortByScore([...veggies]);
-    const shuffledStaples=sortByScore([...staples]);
-    const shuffledSoups=sortByScore([...soups]);
-    const shuffledSnacks=sortByScore([...snacks]);
+    // Each meal gets a sub-seed for variation
+    const s0=seed+mi*100;
+    const shuffledBf=seededShuffle(bf,s0);
+    const shuffledMeats=seededShuffle(meats,s0+1);
+    const shuffledVeggies=seededShuffle(veggies,s0+2);
+    const shuffledStaples=seededShuffle(staples,s0+3);
+    const shuffledSoups=seededShuffle(soups,s0+4);
+    const shuffledSnacks=seededShuffle(snacks,s0+5);
 
     const options=[];
     for(let opt=0;opt<3;opt++){
+      const subSeed=s0+opt*10;
       const dishes=[];
       if(isBreakfast){
         const pick=shuffledBf[opt%Math.max(1,shuffledBf.length)];
@@ -878,8 +875,8 @@ function buildPlanForType(targetProtein,targetCarb,targetFat,planType){
         const vegPick=shuffledVeggies[opt%Math.max(1,shuffledVeggies.length)];
         dishes.push({...vegPick,multiplier:1.0});
 
-        // Soup occasionally
-        if(shuffledSoups.length>0&&opt===0&&Math.random()<0.5){
+        // Soup occasionally (deterministic per option)
+        if(shuffledSoups.length>0&&(subSeed%3===0)){
           dishes.push({...shuffledSoups[0],multiplier:1.0});
         }
       }
@@ -1110,7 +1107,7 @@ function generateFinal(){
   h+='<div style="font-size:12px;line-height:1.8;">';
   h+='<strong>减脂基调：</strong>'+(S.approach==='rapid'?'⚡ 快速减重':'🎯 规范减脂')+'<br>';
   h+='<strong>每日摄入：</strong>'+S.dailyTarget+' kcal ｜ <strong>每日缺口：</strong>'+(S.tdee-S.dailyTarget)+' kcal<br>';
-  h+='<strong>饮食方案：</strong>A.均衡方案（免费）｜ B-E方案可入群解锁<br>';
+  h+='<strong>饮食方案：</strong>A.搭配方案A（免费）｜ B-E不同搭配可入群解锁<br>';
   h+='<strong>运动模式：</strong>'+mode.name+' ｜ 每周额外消耗 ~'+totalExKcal+' kcal<br>';
   h+='<strong>预计月减：</strong>饮食'+(S.monthlyLoss).toFixed(1)+'kg + 运动'+(totalExKcal*4/7700).toFixed(1)+'kg ≈ <strong style="color:#E65100;">'+(S.monthlyLoss+totalExKcal*4/7700).toFixed(1)+' kg</strong>';
   h+='</div></div>';
@@ -1148,7 +1145,7 @@ function buildPlanText(){
   const thin='─'.repeat(36);
 
   txt+=bar+'\n';
-  txt+='   🥗 我的科学减脂计划（A.均衡方案）\n';
+  txt+='   🥗 我的科学减脂计划（搭配方案A）\n';
   txt+=bar+'\n\n';
 
   txt+='【一、减脂基调】'+(S.approach==='rapid'?'快速减重':'规范减脂')+'\n\n';
@@ -1166,7 +1163,7 @@ function buildPlanText(){
   txt+='  蛋白质：'+Math.round(planA.macros.protein)+'g/天 ｜ 碳水：'+Math.round(planA.macros.carb)+'g/天 ｜ 脂肪：'+Math.round(planA.macros.fat)+'g/天\n\n';
 
   // Meals from plan A
-  txt+='【五、每日三餐（A方案 · 均衡）】\n\n';
+  txt+='【五、每日三餐（搭配方案A）】\n\n';
   planA.meals.forEach(meal=>{
     txt+=thin+'\n  '+meal.name+'\n'+thin+'\n';
     meal.options.forEach((opt,i)=>{
