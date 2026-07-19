@@ -259,6 +259,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
 </div>
 <div class="container">
 
+<!-- Admin: quick code entry -->
+<div class="card hidden" id="adminCodeCard" style="background:#fffef5;">
+  <details>
+    <summary style="cursor:pointer;font-size:13px;font-weight:600;">🔧 管理员：输入客户分享码查看完整方案</summary>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <input id="adminCodeInput" placeholder="粘贴客户分享码..." style="flex:1;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:13px;font-family:monospace;">
+      <button class="btn btn-primary" onclick="adminLoadCode()" style="flex:0 0 auto;">加载方案</button>
+    </div>
+    <div id="adminCodeMsg" style="font-size:11px;margin-top:4px;color:var(--text-light);"></div>
+  </details>
+</div>
+
 <div class="steps-indicator" id="stepsBar">
   <div class="step-dot active" data-step="1"><span class="num">1</span>减脂基调</div>
   <div class="step-dot" data-step="2"><span class="num">2</span>身体数据</div>
@@ -458,7 +470,7 @@ function checkAdmin(){
   return sessionStorage.getItem('admin')==='1';
 }
 const IS_ADMIN=checkAdmin();
-if(IS_ADMIN){document.getElementById('adminBadge').classList.remove('hidden');}
+if(IS_ADMIN){document.getElementById('adminBadge').classList.remove('hidden');document.getElementById('adminCodeCard').classList.remove('hidden');}
 
 // ===================== DISHES DATABASE =====================
 const DISHES = [
@@ -1088,6 +1100,10 @@ function generateFinal(){
   h+='<strong>预计月减：</strong>饮食'+(S.monthlyLoss).toFixed(1)+'kg + 运动'+(totalExKcal*4/7700).toFixed(1)+'kg ≈ <strong style="color:#E65100;">'+(S.monthlyLoss+totalExKcal*4/7700).toFixed(1)+' kg</strong>';
   h+='</div></div>';
   h+='<div class="info-box"><strong>💡 提示：</strong>上方步骤5可查看A方案完整饮食计划（三餐×5套搭配）。步骤6可切换运动模式。B/C/D/E方案点击后入群免费获取。</div>';
+  h+='<div class="card mt-12" style="background:#fffef5;"><h3 style="font-size:14px;">📎 分享此方案</h3><p class="subtitle">复制下方分享码发送给你的教练/营养师，对方可一键还原完整方案。</p>';
+  const code=generateShareCode();
+  h+='<div style="display:flex;gap:8px;align-items:center;"><input readonly value="'+code+'" style="flex:1;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:12px;font-family:monospace;background:#fafbfc;" id="shareCodeInput"><button class="btn btn-primary" onclick="copyShareCode()" style="flex:0 0 auto;">📋 复制分享码</button></div>';
+  h+='<div style="font-size:10px;color:var(--text-light);margin-top:6px;">将分享码附加到链接：<code>?code='+code+'&admin=true</code> 即可查看全部5套方案</div></div>';
 
   document.getElementById('finalContent').innerHTML=h;
   document.getElementById('finalResult').scrollIntoView({behavior:'smooth'});
@@ -1174,6 +1190,114 @@ function copyPlanText(){
   }).catch(()=>alert('复制失败，请手动选择文字复制'));
 }
 
+// ===================== SHARE CODE =====================
+function generateShareCode(){
+  const data={
+    v:1,
+    ap:S.approach,
+    g:S.gender,
+    ag:S.age,
+    h:S.height,
+    w:S.weight,
+    bf:parseFloat(document.getElementById('bodyfat').value)||0,
+    act:S.activity,
+    bmr:S.bmr,
+    tdee:S.tdee,
+    dt:S.dailyTarget,
+    ml:S.monthlyLoss,
+    dm:S.dietMode,
+    sd:[...S.selectedDishes],
+    em:S.exMode,
+  };
+  // JSON → base64 → URI-safe
+  return btoa(encodeURIComponent(JSON.stringify(data)));
+}
+
+function loadFromCode(code){
+  try{
+    const data=JSON.parse(decodeURIComponent(atob(code)));
+    if(data.v!==1)return false;
+    // Restore state
+    S.approach=data.ap;
+    S.gender=data.g;
+    S.age=data.ag;
+    S.height=data.h;
+    S.weight=data.w;
+    S.activity=data.act;
+    S.bmr=data.bmr;
+    S.tdee=data.tdee;
+    S.dailyTarget=data.dt;
+    S.monthlyLoss=data.ml;
+    S.dietMode=data.dm;
+    S.selectedDishes=new Set(data.sd);
+    S.exMode=data.em||'health';
+    // Set protein/carb ranges based on diet mode
+    const cl=S.dietMode==='lowcarb'?1.5:S.dietMode==='highcarb'?2.5:1.0;
+    const ch=S.dietMode==='lowcarb'?2.0:S.dietMode==='highcarb'?3.5:3.5;
+    const pl=S.dietMode==='lowcarb'?1.5:S.dietMode==='highcarb'?1.1:1.5;
+    const ph=S.dietMode==='lowcarb'?1.8:S.dietMode==='highcarb'?1.5:1.5;
+    S.carbLow=cl;S.carbHigh=ch;S.proteinLow=pl;S.proteinHigh=ph;
+    if(S.approach==='standard'){S.proteinLow=Math.max(pl,1.6);S.proteinHigh=Math.max(ph,2.0);}
+    // Restore bodyfat input
+    if(data.bf)document.getElementById('bodyfat').value=data.bf;
+    // Fill form fields
+    document.querySelector('input[name="gender"][value="'+S.gender+'"]').checked=true;
+    document.getElementById('age').value=S.age;
+    document.getElementById('height').value=S.height;
+    document.getElementById('weight').value=S.weight;
+    document.getElementById('activity').value=S.activity;
+    // Select approach card
+    selectApproach(S.approach);
+    // Calc & show BMR result
+    document.getElementById('bmrVal').textContent=S.bmr;
+    document.getElementById('tdeeVal').textContent=S.tdee;
+    document.getElementById('bmrResult').classList.remove('hidden');
+    // Update deficit options & calc
+    updateDeficitOptions();
+    document.getElementById('deficitResult').classList.remove('hidden');
+    document.getElementById('dailyDeficit').textContent=S.tdee-S.dailyTarget;
+    document.getElementById('dailyTarget').textContent=S.dailyTarget;
+    document.getElementById('monthlyLoss').textContent=S.monthlyLoss;
+    // Select diet mode card
+    document.querySelectorAll('.diet-card').forEach(c=>c.classList.remove('selected'));
+    document.getElementById('diet-'+S.dietMode).classList.add('selected');
+    document.getElementById('genPlanBtn').disabled=false;
+    // Init dish selector with restored selections
+    initDishSelector();
+    updateApproachFoodNote();
+    // Mark all steps as done
+    for(let i=1;i<=6;i++){const p=document.querySelector('.step-dot[data-step="'+i+'"]');if(p)p.classList.add('done');}
+    return true;
+  }catch(e){console.error('Code parse failed:',e);return false;}
+}
+
+function copyShareCode(){
+  const input=document.getElementById('shareCodeInput');
+  if(!input)return;
+  navigator.clipboard.writeText(input.value).then(()=>{
+    alert('✅ 分享码已复制！\n\n将分享码发送给教练/营养师，对方可用码一键还原完整方案。');
+    if(window._hmt)_hmt.push(['_trackEvent','share','copyCode']);
+  }).catch(()=>alert('复制失败，请手动选择复制'));
+}
+
+function adminLoadCode(){
+  const code=document.getElementById('adminCodeInput').value.trim();
+  const msg=document.getElementById('adminCodeMsg');
+  if(!code){msg.textContent='请输入分享码';msg.style.color='#E53935';return;}
+  if(loadFromCode(code)){
+    msg.textContent='✅ 加载成功！方案已还原。';
+    msg.style.color='#2E7D32';
+    generateFivePlans();
+    renderExerciseStep();
+    generateFinal();
+    document.getElementById('finalResult').classList.remove('hidden');
+    document.getElementById('finalResult').scrollIntoView({behavior:'smooth'});
+  }else{
+    msg.textContent='❌ 分享码无效，请检查是否完整复制。';
+    msg.style.color='#E53935';
+  }
+}
+
 // ===================== INIT =====================
 document.getElementById('lossPace').addEventListener('change',updateLossCalc);
 // Set default diet mode
@@ -1181,6 +1305,19 @@ document.getElementById('diet-lowcarb').classList.add('selected');
 document.getElementById('genPlanBtn').disabled=S.selectedDishes.size<6;
 initDishSelector();
 updateDeficitOptions();
+
+// Check for share code in URL
+(function(){
+  const url=new URL(window.location.href);
+  const code=url.searchParams.get('code');
+  if(code&&loadFromCode(code)){
+    // Auto-generate everything: go to step 6 and generate final
+    generateFivePlans();
+    renderExerciseStep();
+    generateFinal();
+    if(IS_ADMIN)document.getElementById('finalResult').classList.remove('hidden');
+  }
+})();
 
 // Keyboard shortcut
 document.addEventListener('keydown',function(e){
