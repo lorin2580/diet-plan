@@ -3,1096 +3,1218 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>科学饮食计划生成器</title>
+<title>家常减脂饮食计划</title>
+<script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?1fca2c3b9847f95677d160031dcc933d";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();</script>
 <style>
 :root {
-  --primary: #4CAF50; --primary-dark: #388E3C; --accent: #FF9800;
-  --bg: #f5f7fa; --card: #ffffff; --text: #2c3e50; --text-light: #666;
-  --border: #e0e5ec; --shadow: 0 2px 12px rgba(0,0,0,.08);
-  --radius: 12px; --transition: .3s ease;
+  --primary:#4CAF50; --primary-dark:#388E3C; --accent:#FF9800; --bg:#f5f7fa; --card:#fff;
+  --text:#2c3e50; --text-light:#666; --border:#e0e5ec; --shadow:0 2px 12px rgba(0,0,0,.08);
+  --radius:12px; --danger:#E53935;
 }
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-  background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh;
-  -webkit-tap-highlight-color: transparent;
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;-webkit-tap-highlight-color:transparent;}
+.header{background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);color:#fff;text-align:center;padding:20px 14px 16px;}
+.header h1{font-size:20px;font-weight:700;margin-bottom:2px;}
+.header p{font-size:11px;opacity:.8;}
+.container{max-width:880px;margin:0 auto;padding:10px 10px 30px;}
+
+.steps-indicator{display:flex;justify-content:center;gap:4px;margin-bottom:14px;flex-wrap:wrap;}
+.step-dot{display:flex;align-items:center;gap:5px;padding:7px 10px;border-radius:18px;font-size:11px;font-weight:600;background:var(--card);color:var(--text-light);border:2px solid var(--border);cursor:pointer;white-space:nowrap;}
+.step-dot .num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;background:var(--border);color:#999;flex-shrink:0;}
+.step-dot.active{border-color:var(--primary);color:var(--primary);}
+.step-dot.active .num{background:var(--primary);color:#fff;}
+.step-dot.done{border-color:var(--primary);color:var(--primary);}
+.step-dot.done .num{background:var(--primary);color:#fff;}
+
+.card{background:var(--card);border-radius:var(--radius);padding:18px 14px;box-shadow:var(--shadow);margin-bottom:12px;}
+.card h2{font-size:16px;margin-bottom:3px;}
+.card h3{font-size:14px;margin-bottom:6px;}
+.subtitle{font-size:12px;color:var(--text-light);margin-bottom:14px;line-height:1.5;}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.form-grid.col-3{grid-template-columns:1fr 1fr 1fr;}
+.form-group{display:flex;flex-direction:column;gap:3px;}
+.form-group label{font-size:12px;font-weight:600;}
+.form-group .unit{font-size:10px;color:var(--text-light);}
+.form-group input,.form-group select{padding:11px 12px;border:2px solid var(--border);border-radius:8px;font-size:16px;background:#fafbfc;font-family:inherit;min-height:46px;}
+.form-group select{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(76,175,80,.12);}
+.radio-group{display:flex;gap:6px;}
+.radio-option{flex:1;}
+.radio-option input{display:none;}
+.radio-option label{display:flex;flex-direction:column;align-items:center;gap:2px;padding:13px 8px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:12px;background:#fafbfc;text-align:center;min-height:46px;justify-content:center;}
+.radio-option label .icon{font-size:18px;}
+.radio-option input:checked+label{border-color:var(--primary);background:#e8f5e9;color:var(--primary-dark);}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:13px 20px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;min-height:46px;white-space:nowrap;flex:1 1 auto;min-width:90px;}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-outline{background:#fff;color:var(--primary);border:2px solid var(--primary);}
+.btn-accent{background:var(--accent);color:#fff;}
+.btn-lock{background:linear-gradient(135deg,#FF6F00,#FF8F00);color:#fff;}
+.btn-group{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+
+.step-panel{display:none;}
+.step-panel.active{display:block;}
+
+.result-box{background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-radius:var(--radius);padding:14px;margin:10px 0;text-align:center;}
+.result-box .big-num{font-size:28px;font-weight:800;color:var(--primary-dark);}
+.result-box .big-num small{font-size:13px;font-weight:400;}
+
+.macro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0;}
+.macro-card{text-align:center;padding:12px 8px;border-radius:10px;border:2px solid var(--border);background:#fafbfc;}
+.macro-card .label{font-size:10px;color:var(--text-light);}
+.macro-card .value{font-size:22px;font-weight:700;}
+.macro-card .unit{font-size:10px;color:var(--text-light);}
+.macro-card.carb{border-color:#FFC107;}.macro-card.carb .value{color:#F57C00;}
+.macro-card.protein{border-color:#2196F3;}.macro-card.protein .value{color:#1565C0;}
+.macro-card.fat{border-color:#E91E63;}.macro-card.fat .value{color:#AD1457;}
+
+.tag{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600;}
+.tag-red{background:#FFEBEE;color:#C62828;}
+.tag-orange{background:#FFF3E0;color:#E65100;}
+.tag-blue{background:#E3F2FD;color:#1565C0;}
+.tag-green{background:#E8F5E9;color:#2E7D32;}
+.tag-purple{background:#F3E5F5;color:#7B1FA2;}
+
+.info-box{background:#E3F2FD;border-left:4px solid #2196F3;padding:9px 10px;border-radius:0 8px 8px 0;margin:8px 0;font-size:11px;line-height:1.6;}
+.warn-box{background:#FFF3E0;border-left:4px solid #FF9800;padding:9px 10px;border-radius:0 8px 8px 0;margin:8px 0;font-size:11px;}
+.success-box{background:#E8F5E9;border-left:4px solid #4CAF50;padding:9px 10px;border-radius:0 8px 8px 0;margin:8px 0;font-size:11px;}
+
+/* approach cards */
+.approach-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0;}
+.approach-card{border:3px solid var(--border);border-radius:var(--radius);padding:18px 14px;cursor:pointer;text-align:center;transition:.2s;background:#fafbfc;}
+.approach-card:hover{border-color:#aaa;}
+.approach-card.selected{border-color:var(--accent);background:#FFF3E0;}
+.approach-card .ac-icon{font-size:36px;display:block;margin-bottom:6px;}
+.approach-card h3{font-size:16px;margin-bottom:4px;}
+.approach-card .ac-desc{font-size:10px;color:var(--text-light);line-height:1.5;margin-top:4px;}
+.approach-card .ac-tag{display:inline-block;padding:3px 8px;border-radius:10px;font-size:10px;font-weight:700;margin-top:4px;}
+.approach-card .ac-tag.fast{background:#FFEBEE;color:#C62828;}
+.approach-card .ac-tag.standard{background:#E3F2FD;color:#1565C0;}
+
+/* food tags */
+.food-tag{display:inline-block;padding:1px 6px;border-radius:6px;font-size:9px;font-weight:700;margin-left:2px;}
+.food-tag.water{background:#FFEBEE;color:#C62828;}
+.food-tag.recommend{background:#E8F5E9;color:#2E7D32;}
+.food-tag.protein{background:#E3F2FD;color:#1565C0;}
+
+/* diet cards */
+.diet-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0;}
+.diet-card{border:2px solid var(--border);border-radius:var(--radius);padding:14px 8px;cursor:pointer;text-align:center;transition:.2s;font-size:12px;}
+.diet-card:active{transform:scale(.97);}
+.diet-card.selected{border-color:var(--primary);background:#e8f5e9;}
+.diet-card h3{font-size:13px;margin-bottom:2px;}
+.diet-card .desc{font-size:10px;color:var(--text-light);line-height:1.4;margin-top:2px;}
+
+/* dish selector */
+.dish-section{margin:10px 0;}
+.dish-section h4{font-size:13px;margin-bottom:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.dish-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
+.dish-chip{display:flex;align-items:center;gap:8px;padding:10px;border:2px solid var(--border);border-radius:10px;cursor:pointer;transition:.2s;background:#fafbfc;font-size:12px;position:relative;}
+.dish-chip:hover{border-color:#aaa;}
+.dish-chip.selected{border-color:var(--primary);background:#e8f5e9;}
+.dish-chip .dc-check{width:20px;height:20px;border-radius:50%;border:2px solid #ccc;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;}
+.dish-chip.selected .dc-check{border-color:var(--primary);background:var(--primary);color:#fff;}
+.dish-chip .dc-info{flex:1;min-width:0;}
+.dish-chip .dc-info .dc-name{font-weight:600;display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+.dish-chip .dc-info .dc-meta{font-size:10px;color:var(--text-light);}
+.dish-chip .dc-kcal{font-size:14px;font-weight:700;color:var(--primary-dark);flex-shrink:0;}
+.sel-all-btn{font-size:11px;color:var(--primary);cursor:pointer;font-weight:600;background:none;border:none;margin-left:8px;}
+
+/* meal output */
+.meal-day{margin:16px 0;}
+.meal-day h4{font-size:14px;margin-bottom:8px;padding:8px 12px;background:#f0f4f8;border-radius:8px;display:flex;justify-content:space-between;align-items:center;}
+.meal-dish{display:flex;gap:10px;padding:12px;border-bottom:1px solid var(--border);align-items:center;}
+.meal-dish:last-child{border-bottom:none;}
+.meal-dish .md-icon{font-size:30px;flex-shrink:0;}
+.meal-dish .md-info{flex:1;min-width:0;}
+.meal-dish .md-info .md-name{font-size:14px;font-weight:600;}
+.meal-dish .md-info .md-ingredients{font-size:11px;color:var(--text-light);margin-top:2px;}
+.meal-dish .md-info .md-cooking{font-size:10px;color:var(--primary-dark);margin-top:3px;font-weight:500;}
+.meal-dish .md-macros{text-align:right;flex-shrink:0;}
+.meal-dish .md-macros .md-kcal{font-size:18px;font-weight:700;}
+.meal-dish .md-macros .md-detail{font-size:10px;color:var(--text-light);}
+.meal-box{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff;}
+.meal-total{display:flex;justify-content:space-around;padding:10px;background:#f0f4f8;font-weight:700;font-size:12px;border-radius:0 0 10px 10px;flex-wrap:wrap;gap:4px;}
+
+/* visual guide */
+.viz-guide{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:10px 0;}
+.viz-card{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;}
+.viz-card .viz-icon{font-size:36px;display:block;margin-bottom:4px;}
+.viz-card .viz-title{font-size:11px;font-weight:700;color:var(--primary-dark);}
+.viz-card .viz-detail{font-size:9px;color:var(--text-light);line-height:1.5;}
+
+/* A/B/C option tabs (sub-options within a meal) */
+.option-tabs{display:flex;gap:4px;margin:6px 0;}
+.option-tab{flex:1;padding:8px;border:2px solid var(--border);background:#fff;border-radius:8px;cursor:pointer;text-align:center;font-size:12px;font-weight:600;transition:.2s;min-height:40px;}
+.option-tab.active{border-color:var(--accent);background:#FFF3E0;color:#E65100;}
+.option-tab .opt-kcal{font-size:10px;color:var(--text-light);font-weight:400;}
+.option-tab.active .opt-kcal{color:#E65100;}
+.option-panel{display:none;}
+.option-panel.active{display:block;}
+
+/* 5 plan tabs (A/B/C/D/E) */
+.plan-tabs{display:flex;gap:4px;margin:8px 0;flex-wrap:wrap;}
+.plan-tab{flex:1;min-width:50px;padding:10px 6px;border:2px solid var(--border);background:#fff;border-radius:10px;cursor:pointer;text-align:center;font-size:14px;font-weight:700;transition:.2s;}
+.plan-tab:hover{border-color:#aaa;}
+.plan-tab.active{border-color:var(--primary);background:#e8f5e9;color:var(--primary-dark);}
+.plan-tab.locked{background:#fafafa;color:#bbb;}
+.plan-tab.locked .lock-icon{font-size:10px;display:block;}
+.plan-tab .plan-sub{font-size:10px;color:var(--text-light);font-weight:400;}
+.plan-tab.active .plan-sub{color:var(--primary-dark);}
+.plan-panel{display:none;}
+.plan-panel.active{display:block;}
+
+/* locked plan overlay */
+.plan-locked-wrap{position:relative;}
+.plan-locked-overlay{position:absolute;inset:0;background:rgba(255,255,255,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;cursor:pointer;border:2px dashed #ddd;}
+.plan-locked-overlay .lock-big{font-size:40px;margin-bottom:4px;}
+.plan-locked-overlay .lock-text{font-size:13px;font-weight:700;color:#999;}
+.plan-locked-overlay .lock-sub{font-size:10px;color:#bbb;}
+
+/* preview card for locked plans */
+.plan-preview{padding:12px;background:#f9f9f9;border-radius:8px;text-align:center;margin-bottom:6px;position:relative;z-index:1;}
+.plan-preview .pp-stats{display:flex;justify-content:space-around;gap:4px;font-size:12px;}
+.plan-preview .pp-stat{text-align:center;}
+.plan-preview .pp-stat .pp-val{font-size:18px;font-weight:700;color:var(--primary-dark);}
+.plan-preview .pp-stat .pp-label{font-size:9px;color:var(--text-light);}
+
+/* modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal-content{background:#fff;border-radius:var(--radius);padding:24px 18px;max-width:380px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.2);animation:modalIn .3s;}
+@keyframes modalIn{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-content .mc-icon{font-size:48px;margin-bottom:8px;}
+.modal-content h3{font-size:18px;margin-bottom:6px;}
+.modal-content p{font-size:13px;color:var(--text-light);margin-bottom:12px;line-height:1.6;}
+.modal-content .mc-qr{border:2px dashed var(--border);border-radius:8px;padding:20px;margin:10px 0;font-size:12px;color:#bbb;}
+.modal-close{position:absolute;top:10px;right:14px;font-size:22px;cursor:pointer;color:#999;background:none;border:none;}
+
+/* exercise */
+.ex-mode-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0;}
+.ex-card{border:2px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center;cursor:pointer;transition:.2s;font-size:12px;}
+.ex-card:hover{border-color:#aaa;}
+.ex-card.selected{border-color:var(--accent);background:#FFF3E0;}
+.ex-card .ex-icon{font-size:24px;display:block;}
+.ex-card .ex-name{font-weight:700;margin-top:4px;}
+.ex-card .ex-desc{font-size:10px;color:var(--text-light);margin-top:2px;}
+.ex-list{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0;}
+.ex-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border:1px solid var(--border);border-radius:8px;font-size:12px;}
+.ex-item .ex-i{font-size:22px;flex-shrink:0;}
+.ex-item .ex-info{flex:1;min-width:0;}
+.ex-item .ex-info .ex-title{font-weight:600;font-size:13px;}
+.ex-item .ex-info .ex-how{font-size:10px;color:var(--text-light);}
+.ex-item .ex-burn{text-align:right;flex-shrink:0;font-weight:700;color:#E65100;font-size:14px;}
+.ex-item .ex-burn small{font-size:10px;color:var(--text-light);display:block;}
+
+/* export */
+.export-bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:12px;border-top:2px dashed var(--border);}
+.export-bar .btn{flex:0 1 auto;}
+
+/* admin badge */
+.admin-badge{position:fixed;bottom:10px;right:10px;background:#333;color:#ff0;padding:4px 10px;border-radius:12px;font-size:10px;font-weight:700;z-index:100;opacity:.8;}
+
+.hidden{display:none!important;}
+.text-center{text-align:center;}
+.mt-12{margin-top:12px;}
+
+/* validation */
+.input-error{border-color:#E53935!important;box-shadow:0 0 0 3px rgba(229,57,53,.15)!important;background:#FFF5F5!important;}
+.error-msg{color:#E53935;font-size:11px;margin-top:2px;display:none;}
+.error-msg.show{display:block;}
+.step-error{border-color:#E53935!important;animation:shake .5s;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+@media(max-width:600px){
+  .header h1{font-size:18px;}.header p{font-size:10px;}
+  .container{padding:6px 6px 24px;}
+  .step-dot{padding:5px 6px;font-size:10px;}.step-dot .num{width:18px;height:18px;font-size:9px;}
+  .card{padding:14px 10px;margin-bottom:8px;}
+  .card h2{font-size:15px;}
+  .form-grid,.form-grid.col-3{grid-template-columns:1fr;gap:8px;}
+  .approach-cards{grid-template-columns:1fr;gap:8px;}
+  .btn{flex:1 1 100%;min-width:0;font-size:13px;padding:12px 14px;}
+  .diet-cards{grid-template-columns:1fr;gap:6px;}
+  .dish-grid{grid-template-columns:1fr;gap:4px;}
+  .ex-mode-cards{grid-template-columns:1fr;}
+  .ex-list{grid-template-columns:1fr;}
+  .export-bar .btn{flex:1 1 100%;}
+  .result-box .big-num{font-size:24px;}
+  .macro-grid{gap:6px;}.macro-card{padding:10px 6px;}.macro-card .value{font-size:20px;}
+  .plan-tabs{flex-wrap:wrap;}.plan-tab{min-width:40px;font-size:12px;}
 }
-
-/* ===================== HEADER ===================== */
-.header {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-  color: #fff; text-align: center; padding: 24px 16px 18px;
-}
-.header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
-.header p { font-size: 12px; opacity: .8; line-height: 1.4; }
-
-/* ===================== LAYOUT ===================== */
-.container { max-width: 900px; margin: 0 auto; padding: 12px 12px 32px; }
-
-/* ===================== STEP INDICATOR ===================== */
-.steps-indicator {
-  display: flex; justify-content: center; gap: 6px; margin-bottom: 16px; flex-wrap: wrap;
-}
-.step-dot {
-  display: flex; align-items: center; gap: 6px;
-  padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;
-  background: var(--card); color: var(--text-light); border: 2px solid var(--border);
-  transition: var(--transition); cursor: pointer; white-space: nowrap;
-}
-.step-dot .num {
-  width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center;
-  justify-content: center; font-size: 12px; font-weight: 700; background: var(--border); color: #999;
-  flex-shrink: 0;
-}
-.step-dot.active { border-color: var(--primary); color: var(--primary); }
-.step-dot.active .num { background: var(--primary); color: #fff; }
-.step-dot.done { border-color: var(--primary); color: var(--primary); }
-.step-dot.done .num { background: var(--primary); color: #fff; }
-
-/* ===================== CARDS ===================== */
-.card {
-  background: var(--card); border-radius: var(--radius); padding: 20px 16px;
-  box-shadow: var(--shadow); margin-bottom: 14px;
-}
-.card h2 { font-size: 17px; margin-bottom: 4px; color: var(--text); }
-.card .subtitle { font-size: 12px; color: var(--text-light); margin-bottom: 16px; line-height: 1.5; }
-
-/* ===================== FORM ===================== */
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.form-grid.col-3 { grid-template-columns: 1fr 1fr 1fr; }
-.form-grid.col-1 { grid-template-columns: 1fr; }
-.form-group { display: flex; flex-direction: column; gap: 4px; }
-.form-group label { font-size: 13px; font-weight: 600; color: var(--text); }
-.form-group .unit { font-size: 11px; color: var(--text-light); font-weight: 400; }
-.form-group input, .form-group select {
-  padding: 12px 14px; border: 2px solid var(--border); border-radius: 8px;
-  font-size: 16px; transition: var(--transition); background: #fafbfc;
-  font-family: inherit; -webkit-appearance: none; appearance: none;
-  min-height: 48px; /* touch target */
-}
-.form-group input:focus, .form-group select:focus {
-  outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(76,175,80,.15);
-}
-.radio-group { display: flex; gap: 8px; flex-wrap: wrap; }
-.radio-option { flex:1; min-width: 80px; }
-.radio-option input { display: none; }
-.radio-option label {
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 14px 8px; border: 2px solid var(--border); border-radius: 10px;
-  cursor: pointer; transition: var(--transition); text-align: center; font-size: 13px;
-  background: #fafbfc; min-height: 48px; justify-content: center;
-}
-.radio-option label .icon { font-size: 20px; }
-.radio-option input:checked + label {
-  border-color: var(--primary); background: #e8f5e9; color: var(--primary-dark);
-}
-
-/* ===================== BUTTONS ===================== */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
-  padding: 14px 22px; border: none; border-radius: 8px; font-size: 15px;
-  font-weight: 600; cursor: pointer; transition: var(--transition); font-family: inherit;
-  min-height: 48px; /* touch target */ -webkit-tap-highlight-color: transparent;
-  white-space: nowrap; flex: 1 1 auto; min-width: 120px;
-}
-.btn:active { transform: scale(.97); }
-.btn-primary { background: var(--primary); color: #fff; }
-.btn-outline { background: #fff; color: var(--primary); border: 2px solid var(--primary); }
-.btn-accent { background: var(--accent); color: #fff; }
-.btn-group { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
-
-/* ===================== STEP PANELS ===================== */
-.step-panel { display: none; }
-.step-panel.active { display: block; }
-
-/* ===================== RESULTS ===================== */
-.result-box {
-  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-  border-radius: var(--radius); padding: 16px; margin: 12px 0;
-  text-align: center;
-}
-.result-box .big-num { font-size: 30px; font-weight: 800; color: var(--primary-dark); }
-.result-box .big-num small { font-size: 14px; font-weight: 400; }
-.macro-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0; }
-.macro-card {
-  text-align: center; padding: 14px 10px; border-radius: 10px;
-  border: 2px solid var(--border); background: #fafbfc;
-}
-.macro-card .label { font-size: 11px; color: var(--text-light); margin-bottom: 2px; }
-.macro-card .value { font-size: 24px; font-weight: 700; }
-.macro-card .unit { font-size: 11px; color: var(--text-light); }
-.macro-card.carb { border-color: #FFC107; } .macro-card.carb .value { color: #F57C00; }
-.macro-card.protein { border-color: #2196F3; } .macro-card.protein .value { color: #1565C0; }
-.macro-card.fat { border-color: #E91E63; } .macro-card.fat .value { color: #AD1457; }
-
-/* ===================== MEAL TABLE ===================== */
-.table-wrap {
-  width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;
-  margin: 10px 0; border-radius: 8px; border: 1px solid var(--border);
-  /* scroll hint shadow */
-  background:
-    linear-gradient(to right, #fff 30%, transparent),
-    linear-gradient(to left, #fff 30%, transparent),
-    radial-gradient(farthest-side at 0% 50%, rgba(0,0,0,.12), transparent),
-    radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,.12), transparent);
-  background-repeat: no-repeat;
-  background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
-  background-position: 0 0, 100% 0, 0 0, 100% 0;
-  background-attachment: local, local, scroll, scroll;
-}
-.meal-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 580px; }
-.meal-table th {
-  background: #1a1a2e; color: #fff; padding: 8px 6px; font-size: 11px; text-align: center;
-  position: sticky; top: 0; white-space: nowrap;
-}
-.meal-table td { padding: 7px 6px; border-bottom: 1px solid var(--border); text-align: center; }
-.meal-table tr:last-child td { border-bottom: none; }
-.meal-table tbody tr:active td { background: #f0f4f8; }
-.tag {
-  display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600;
-  white-space: nowrap;
-}
-.tag-high { background: #FFEBEE; color: #C62828; }
-.tag-mid { background: #FFF3E0; color: #E65100; }
-.tag-low { background: #E3F2FD; color: #1565C0; }
-
-/* ===================== FOOD CARDS (mobile alt) ===================== */
-.food-cards { display: none; }
-.food-card {
-  display: flex; align-items: center; gap: 10px; padding: 12px;
-  border-bottom: 1px solid var(--border); background: #fff;
-}
-.food-card:last-child { border-bottom: none; }
-.food-card .fc-icon {
-  width: 40px; height: 40px; border-radius: 50%; display: flex;
-  align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
-}
-.food-card .fc-icon.主食 { background: #FFF3E0; }
-.food-card .fc-icon.肉类, .food-card .fc-icon.蛋类, .food-card .fc-icon.海鲜, .food-card .fc-icon.豆制品, .food-card .fc-icon.乳制品, .food-card .fc-icon.饮品 { background: #E3F2FD; }
-.food-card .fc-icon.蔬菜 { background: #E8F5E9; }
-.food-card .fc-icon.油脂, .food-card .fc-icon.坚果, .food-card .fc-icon.坚果酱, .food-card .fc-icon.水果 { background: #FCE4EC; }
-.food-card .fc-info { flex:1; min-width:0; }
-.food-card .fc-info .fc-name { font-size: 14px; font-weight: 600; }
-.food-card .fc-info .fc-weight { font-size: 13px; color: var(--primary-dark); font-weight: 700; }
-.food-card .fc-macros { text-align: right; flex-shrink: 0; }
-.food-card .fc-macros .fc-kcal { font-size: 16px; font-weight: 700; color: var(--text); }
-.food-card .fc-macros .fc-detail { font-size: 11px; color: var(--text-light); }
-.meal-section-title {
-  font-size: 14px; font-weight: 700; margin-top: 14px; padding: 10px 12px;
-  background: #f0f4f8; border-radius: 8px 8px 0 0;
-  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px;
-}
-.meal-section-title .ms-macros { font-size: 12px; color: var(--text-light); font-weight: 400; }
-.food-cards-wrap {
-  border: 1px solid var(--border); border-radius: 0 0 8px 8px;
-  border-top: none; overflow: hidden;
-}
-.meal-total-row {
-  display: flex; justify-content: space-around; padding: 12px;
-  background: #f0f4f8; font-weight: 700; font-size: 13px;
-  border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px;
-  flex-wrap: wrap; gap: 8px;
-}
-
-/* ===================== DIET CARDS ===================== */
-.diet-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0; }
-.diet-card {
-  border: 2px solid var(--border); border-radius: var(--radius); padding: 16px 10px;
-  cursor: pointer; transition: var(--transition); text-align: center;
-  -webkit-tap-highlight-color: transparent;
-}
-.diet-card:active { transform: scale(.97); }
-.diet-card.selected { border-color: var(--primary); background: #e8f5e9; box-shadow: 0 0 0 3px rgba(76,175,80,.1); }
-.diet-card h3 { font-size: 14px; margin-bottom: 2px; }
-.diet-card .desc { font-size: 11px; color: var(--text-light); line-height: 1.4; margin-top: 4px; }
-.diet-card .suitable { font-size: 10px; color: var(--primary-dark); margin-top: 4px; font-weight: 600; }
-
-/* ===================== INFO / WARN ===================== */
-.info-box {
-  background: #E3F2FD; border-left: 4px solid #2196F3;
-  padding: 10px 12px; border-radius: 0 8px 8px 0; margin: 10px 0; font-size: 12px;
-  line-height: 1.6;
-}
-.warn-box {
-  background: #FFF3E0; border-left: 4px solid #FF9800;
-  padding: 10px 12px; border-radius: 0 8px 8px 0; margin: 10px 0; font-size: 12px;
-  line-height: 1.6;
-}
-
-/* ===================== TABS ===================== */
-.tabs { display: flex; gap: 4px; margin: 10px 0; }
-.tab-btn {
-  flex: 1; padding: 10px 6px; border: 2px solid var(--border); background: #fff;
-  border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: var(--transition);
-  text-align: center; min-height: 48px; -webkit-tap-highlight-color: transparent;
-}
-.tab-btn br { display: none; }
-.tab-btn small { font-size: 10px; color: var(--text-light); font-weight: 400; display: block; margin-top: 2px; }
-.tab-btn:active { transform: scale(.97); }
-.tab-btn.active { border-color: var(--primary); background: #e8f5e9; color: var(--primary-dark); }
-.tab-btn.active small { color: var(--primary-dark); }
-.tab-content { display: none; }
-.tab-content.active { display: block; }
-
-/* ===================== PROGRESS BAR ===================== */
-.progress-bar-bg { background: #e0e5ec; border-radius: 10px; height: 12px; margin: 8px 0; overflow: hidden; }
-.progress-bar-fill { height: 100%; border-radius: 10px; transition: width .6s ease; }
-.progress-bar-fill.carb-fill { background: linear-gradient(90deg, #FFC107, #FF9800); }
-.progress-bar-fill.protein-fill { background: linear-gradient(90deg, #64B5F6, #2196F3); }
-.progress-bar-fill.fat-fill { background: linear-gradient(90deg, #F48FB1, #E91E63); }
-
-/* Hidden/visible */
-.hidden { display: none !important; }
-.text-center { text-align: center; }
-.mt-12 { margin-top: 12px; }
-.mt-20 { margin-top: 20px; }
-
-/* ===================== MOBILE < 600px ===================== */
-@media (max-width: 600px) {
-  .header { padding: 18px 12px 14px; }
-  .header h1 { font-size: 19px; }
-  .header p { font-size: 11px; }
-
-  .container { padding: 8px 8px 24px; }
-
-  /* Step dots — compact */
-  .steps-indicator { gap: 4px; margin-bottom: 12px; }
-  .step-dot { padding: 6px 10px; font-size: 12px; border-radius: 16px; }
-  .step-dot .num { width: 22px; height: 22px; font-size: 11px; }
-
-  /* Cards */
-  .card { padding: 16px 12px; margin-bottom: 10px; border-radius: 10px; }
-  .card h2 { font-size: 16px; }
-
-  /* Form — single column */
-  .form-grid, .form-grid.col-3 { grid-template-columns: 1fr; gap: 10px; }
-  .form-group input, .form-group select { font-size: 16px; padding: 12px; }
-  .radio-option label { padding: 12px 6px; font-size: 12px; }
-
-  /* Buttons — full width */
-  .btn { flex: 1 1 100%; min-width: 0; font-size: 14px; padding: 14px 16px; }
-  .btn-group { gap: 8px; }
-
-  /* Result numbers */
-  .result-box { padding: 14px 12px; }
-  .result-box .big-num { font-size: 26px; }
-
-  /* Macro grid — 3 col still OK on most phones, but stack if very narrow */
-  .macro-grid { gap: 8px; }
-  .macro-card { padding: 12px 8px; }
-  .macro-card .value { font-size: 22px; }
-
-  /* Diet cards — stack vertically */
-  .diet-cards { grid-template-columns: 1fr; gap: 8px; }
-  .diet-card { padding: 14px 12px; }
-  .diet-card h3 { font-size: 15px; }
-  .diet-card .desc { font-size: 12px; }
-  .diet-card .suitable { font-size: 11px; }
-
-  /* Tabs */
-  .tab-btn { font-size: 11px; padding: 8px 4px; }
-  .tab-btn br { display: inline; }
-  .tab-btn small { font-size: 10px; }
-
-  /* Info boxes */
-  .info-box, .warn-box { font-size: 11px; padding: 8px 10px; }
-
-  /* Meal: show food cards, hide table */
-  .table-wrap { display: none; }
-  .food-cards { display: block; }
-}
-
-/* ===================== VERY NARROW < 380px ===================== */
-@media (max-width: 380px) {
-  .header h1 { font-size: 17px; }
-  .step-dot { padding: 5px 8px; font-size: 11px; gap: 4px; }
-  .step-dot .num { width: 20px; height: 20px; font-size: 10px; }
-  .macro-grid { grid-template-columns: 1fr; }
-  .result-box .big-num { font-size: 22px; }
-  .tab-btn { font-size: 10px; }
+@media(max-width:380px){
+  .header h1{font-size:16px;}
+  .macro-grid{grid-template-columns:1fr;}
+  .result-box .big-num{font-size:20px;}
 }
 </style>
 </head>
 <body>
-
 <div class="header">
-  <h1>🥗 科学饮食计划生成器</h1>
-  <p>基于 Mifflin-St Jeor 公式 · 中国居民膳食指南 DRIs 2023 · 循证营养学</p>
+  <h1>🥗 家常减脂 · 饮食计划</h1>
+  <p>© 2026 瑞驰健康科技公司 版权所有</p>
+  <p style="font-size:11px;opacity:.7;">不折腾 · 买得到 · 做得来 · 吃得饱</p>
 </div>
-
 <div class="container">
-  <!-- Step Indicator -->
-  <div class="steps-indicator">
-    <div class="step-dot active" data-step="1"><span class="num">1</span>基础代谢</div>
-    <div class="step-dot" data-step="2"><span class="num">2</span>减重目标</div>
-    <div class="step-dot" data-step="3"><span class="num">3</span>饮食计划</div>
+
+<div class="steps-indicator" id="stepsBar">
+  <div class="step-dot active" data-step="1"><span class="num">1</span>减脂基调</div>
+  <div class="step-dot" data-step="2"><span class="num">2</span>身体数据</div>
+  <div class="step-dot" data-step="3"><span class="num">3</span>减重目标</div>
+  <div class="step-dot" data-step="4"><span class="num">4</span>选菜模式</div>
+  <div class="step-dot" data-step="5"><span class="num">5</span>饮食计划</div>
+  <div class="step-dot" data-step="6"><span class="num">6</span>运动计划</div>
+</div>
+
+<!-- ===== STEP 1: APPROACH ===== -->
+<div class="step-panel active" id="step1">
+  <div class="card">
+    <h2>🎯 第一步：选择你的减脂基调</h2>
+    <p class="subtitle">这将决定后续饮食计划的计算逻辑和食物推荐策略</p>
+    <div class="approach-cards">
+      <div class="approach-card" id="ac-rapid" onclick="selectApproach('rapid')">
+        <span class="ac-icon">⚡</span>
+        <h3>快速减重</h3>
+        <div class="ac-tag fast">见效快 · 前期减水分多</div>
+        <div class="ac-desc">适合想快速看到体重下降的人。<br>热量缺口可达500-1000kcal/天，<br>前期体重下降明显但部分来自水分，<br>恢复正常饮食后容易反弹。</div>
+      </div>
+      <div class="approach-card" id="ac-standard" onclick="selectApproach('standard')">
+        <span class="ac-icon">🎯</span>
+        <h3>规范减脂</h3>
+        <div class="ac-tag standard">慢但稳 · 保留肌肉</div>
+        <div class="ac-desc">适合有一定训练/减肥经验的人。<br>每日热量缺口上限500kcal，<br>以<strong>腰围、臀围</strong>变化衡量效果，<br>忽略体重短期波动，不易反弹。</div>
+      </div>
+    </div>
+    <div class="info-box" id="approachInfo" style="display:none;"></div>
+    <div class="btn-group"><button class="btn btn-primary" id="btnApproachNext" onclick="goStep(2)" disabled>下一步：填写身体数据 →</button></div>
+  </div>
+</div>
+
+<!-- ===== STEP 2: BODY DATA ===== -->
+<div class="step-panel" id="step2">
+  <div class="card">
+    <h2>📊 第二步：填写身体数据</h2>
+    <p class="subtitle">用 Mifflin-St Jeor 公式计算你的每日消耗</p>
+    <div class="form-grid">
+      <div class="form-group"><label>性别</label><div class="radio-group"><div class="radio-option"><input type="radio" name="gender" id="gm" value="male" checked><label for="gm"><span class="icon">👨</span>男</label></div><div class="radio-option"><input type="radio" name="gender" id="gf" value="female"><label for="gf"><span class="icon">👩</span>女</label></div></div></div>
+      <div class="form-group"><label>年龄<span class="unit"> 岁</span></label><input type="number" id="age" value="30" min="15" max="100"></div>
+      <div class="form-group"><label>身高<span class="unit"> cm</span></label><input type="number" id="height" value="170" min="100" max="250"></div>
+      <div class="form-group"><label>体重<span class="unit"> kg</span></label><input type="number" id="weight" value="70" min="30" max="300" step="0.1"></div>
+      <div class="form-group"><label>体脂率<span class="unit"> % 可选</span></label><input type="number" id="bodyfat" placeholder="不确定可留空" step="0.1"></div>
+      <div class="form-group"><label>活动水平</label><select id="activity"><option value="1.2">🪑 久坐，几乎不运动</option><option value="1.375" selected>🚶 轻度，周1-3天散步</option><option value="1.55">🏃 中度，周3-5天运动</option><option value="1.725">💪 高度，周6-7天运动</option><option value="1.9">🔥 极高度，体力劳动/运动员</option></select></div>
+    </div>
+    <div class="btn-group"><button class="btn btn-outline" onclick="goStep(1)">←</button><button class="btn btn-primary" onclick="calcBMR()">计算 →</button></div>
+  </div>
+  <div class="card hidden" id="bmrResult">
+    <h2>📈 你的代谢数据</h2>
+    <div class="form-grid">
+      <div class="result-box"><div style="font-size:13px;color:var(--text-light);">基础代谢 BMR</div><div class="big-num"><span id="bmrVal">--</span><small> kcal/天</small></div></div>
+      <div class="result-box" style="background:linear-gradient(135deg,#fff3e0,#ffe0b2);"><div style="font-size:13px;color:var(--text-light);">每日消耗 TDEE</div><div class="big-num" style="color:#E65100;"><span id="tdeeVal">--</span><small> kcal/天</small></div></div>
+    </div>
+    <div class="btn-group"><button class="btn btn-outline" onclick="goStep(1)">←</button><button class="btn btn-primary" onclick="goStep(3)">下一步 →</button></div>
+  </div>
+</div>
+
+<!-- ===== STEP 3: DEFICIT ===== -->
+<div class="step-panel" id="step3">
+  <div class="card">
+    <h2>🎯 第三步：减重目标</h2>
+    <p class="subtitle" id="deficitSubtitle">请先在第一步选择减脂基调并计算代谢数据</p>
+    <div class="form-grid">
+      <div class="form-group"><label>减重速度</label><select id="lossPace" onchange="updateLossCalc()"><option value="2" selected>✅ 推荐：月减2kg（日缺口500kcal）</option><option value="1">🐢 温和：月减1.2kg（日缺口300kcal）</option><option value="3">⚡ 积极：月减3kg（日缺口750kcal）</option><option value="4">🚀 激进：月减4kg（日缺口1000kcal）</option><option value="custom">🔧 自定义</option></select></div>
+      <div class="form-group hidden" id="customLossGroup"><label>每月减<span class="unit"> kg</span></label><input type="number" id="customLoss" value="2" min="0.5" max="10" step="0.1"></div>
+      <div class="form-group"><label>计划减多久<span class="unit"> 月</span></label><input type="number" id="totalMonths" value="3" min="1" max="24"></div>
+      <div class="form-group"><label>总共减<span class="unit"> kg</span></label><input type="number" id="totalLoss" value="6" min="1" max="100" step="0.1"></div>
+    </div>
+    <div class="info-box" id="deficitInfo">💡 任选一种填写。月减2-4kg最科学。1kg脂肪≈7700kcal。</div>
+    <div id="standardCapInfo" class="hidden"></div>
+    <div class="btn-group"><button class="btn btn-outline" onclick="goStep(2)">←</button><button class="btn btn-primary" onclick="calcDeficit()">计算 →</button></div>
+  </div>
+  <div class="card hidden" id="deficitResult">
+    <h2>📊 每日安排</h2>
+    <div class="form-grid col-3">
+      <div class="macro-card carb"><div class="label">每日缺口</div><div class="value"><span id="dailyDeficit">--</span></div><div class="unit">kcal</div></div>
+      <div class="macro-card protein"><div class="label">每日吃</div><div class="value"><span id="dailyTarget">--</span></div><div class="unit">kcal</div></div>
+      <div class="macro-card fat"><div class="label">月减</div><div class="value"><span id="monthlyLoss">--</span></div><div class="unit">kg</div></div>
+    </div>
+    <div class="warn-box" id="safetyWarn" style="display:none;"></div>
+    <div class="btn-group"><button class="btn btn-outline" onclick="goStep(2)">←</button><button class="btn btn-primary" onclick="goStep(4)">下一步：选菜 →</button></div>
+  </div>
+</div>
+
+<!-- ===== STEP 4: DISH SELECTION + DIET MODE ===== -->
+<div class="step-panel" id="step4">
+  <div class="card">
+    <h2>🍳 第四步：勾选你方便做的家常菜</h2>
+    <p class="subtitle">只选你<strong>买得到食材、会做、愿意做</strong>的菜。没勾选的不会出现在计划里。</p>
+    <div id="approachFoodNote"></div>
+    <div id="dishSelector"></div>
+    <div class="info-box mt-12">💡 至少每类各选2-3道，选够10道以上计划更好排。只选你真正会做的，别勉强。</div>
   </div>
 
-  <!-- ==================== STEP 1: BMR ==================== -->
-  <div class="step-panel active" id="step1">
-    <div class="card">
-      <h2>📊 第一步：计算基础代谢与每日消耗</h2>
-      <p class="subtitle">请填写以下信息，系统将使用 Mifflin-St Jeor 公式（国际公认最准确）计算您的基础代谢率</p>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label>性别</label>
-          <div class="radio-group">
-            <div class="radio-option">
-              <input type="radio" name="gender" id="gender-male" value="male" checked>
-              <label for="gender-male"><span class="icon">👨</span>男性</label>
-            </div>
-            <div class="radio-option">
-              <input type="radio" name="gender" id="gender-female" value="female">
-              <label for="gender-female"><span class="icon">👩</span>女性</label>
-            </div>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>年龄 <span class="unit">（岁）</span></label>
-          <input type="number" id="age" placeholder="例：30" min="15" max="100" value="30">
-        </div>
-        <div class="form-group">
-          <label>身高 <span class="unit">（cm）</span></label>
-          <input type="number" id="height" placeholder="例：170" min="100" max="250" value="170">
-        </div>
-        <div class="form-group">
-          <label>体重 <span class="unit">（kg）</span></label>
-          <input type="number" id="weight" placeholder="例：70" min="30" max="300" value="70" step="0.1">
-        </div>
-        <div class="form-group">
-          <label>体脂率 <span class="unit">（% 可选，更精准）</span></label>
-          <input type="number" id="bodyfat" placeholder="例：25（不确定可留空）" min="3" max="60" step="0.1">
-        </div>
-        <div class="form-group">
-          <label>活动水平</label>
-          <select id="activity">
-            <option value="1.2">🪑 久坐不动 — 极少运动，办公室工作</option>
-            <option value="1.375" selected>🚶 轻度活动 — 每周1-3天轻度运动</option>
-            <option value="1.55">🏃 中度活动 — 每周3-5天中等运动</option>
-            <option value="1.725">💪 高度活跃 — 每周6-7天高强度运动</option>
-            <option value="1.9">🔥 极度活跃 — 每天高强度训练/体力劳动</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="info-box mt-12">
-        <strong>🧠 体脂率参考：</strong>
-        男性：必要脂肪 2-5% | 健康 10-20% | 偏胖 20-25% | 肥胖 &gt;25%<br>
-        女性：必要脂肪 10-13% | 健康 18-28% | 偏胖 28-33% | 肥胖 &gt;33%
-      </div>
-
-      <div class="btn-group">
-        <button class="btn btn-primary" onclick="calcBMR()">计算基础代谢 →</button>
-      </div>
+  <div class="card">
+    <h2>⚙️ 选择减脂模式</h2>
+    <div class="diet-cards">
+      <div class="diet-card" id="diet-lowcarb" onclick="selectDiet('lowcarb')"><h3>🔴 低碳模式</h3>碳水1.5-2g/kg · 蛋白1.5-1.8g/kg<div class="desc">适合运动少、爱吃肉的人</div></div>
+      <div class="diet-card" id="diet-highcarb" onclick="selectDiet('highcarb')"><h3>🟢 高碳模式</h3>碳水2.5-3.5g/kg · 蛋白1.1-1.5g/kg<div class="desc">适合经常运动、爱吃主食的人</div></div>
+      <div class="diet-card" id="diet-cycle" onclick="selectDiet('cycle')"><h3>🔵 碳循环</h3>高低碳水日交替 · 蛋白恒定1.5g/kg<div class="desc">适合平台期突破、训练日吃碳水</div></div>
     </div>
-
-    <div class="card hidden" id="bmrResult">
-      <h2>📈 计算结果</h2>
-      <div class="form-grid">
-        <div class="result-box">
-          <div style="font-size:14px;color:var(--text-light);margin-bottom:4px;">基础代谢率 BMR</div>
-          <div class="big-num"><span id="bmrVal">--</span> <small>kcal/天</small></div>
-          <div style="font-size:12px;color:var(--text-light);">Mifflin-St Jeor 公式</div>
-        </div>
-        <div class="result-box" style="background:linear-gradient(135deg,#fff3e0,#ffe0b2);">
-          <div style="font-size:14px;color:var(--text-light);margin-bottom:4px;">每日总消耗 TDEE</div>
-          <div class="big-num" style="color:#E65100;"><span id="tdeeVal">--</span> <small>kcal/天</small></div>
-          <div style="font-size:12px;color:var(--text-light);">BMR × 活动系数</div>
-        </div>
-      </div>
-      <div class="btn-group">
-        <button class="btn btn-primary" onclick="goStep(2)">下一步：设定减重目标 →</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==================== STEP 2: WEIGHT LOSS GOAL ==================== -->
-  <div class="step-panel" id="step2">
-    <div class="card">
-      <h2>🎯 第二步：设定减重目标</h2>
-      <p class="subtitle">根据您的 TDEE，制定科学的减重计划</p>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label>目标减重速度</label>
-          <select id="lossPace" onchange="updateLossCalc()">
-            <option value="1">🐢 温和 — 月减 ~1.2kg（日缺口 300 kcal）</option>
-            <option value="2" selected>✅ 推荐 — 月减 ~2kg（日缺口 500 kcal）</option>
-            <option value="3">⚡ 积极 — 月减 ~3kg（日缺口 750 kcal）</option>
-            <option value="4">🚀 激进 — 月减 ~4kg（日缺口 1000 kcal）</option>
-            <option value="custom">🔧 自定义</option>
-          </select>
-        </div>
-        <div class="form-group hidden" id="customLossGroup">
-          <label>每月减重目标 <span class="unit">（kg）</span></label>
-          <input type="number" id="customLoss" placeholder="例：2.5" min="0.5" max="10" step="0.1" value="2">
-        </div>
-        <div class="form-group">
-          <label>或：计划总时长 <span class="unit">（月）</span></label>
-          <input type="number" id="totalMonths" placeholder="例：3" min="1" max="24" value="3">
-        </div>
-        <div class="form-group">
-          <label>或：总减重目标 <span class="unit">（kg）</span></label>
-          <input type="number" id="totalLoss" placeholder="例：6" min="1" max="100" step="0.1" value="6">
-        </div>
-      </div>
-
-      <div class="info-box">
-        <strong>💡 说明：</strong>以上三种方式任选一种即可。如果同时填写，优先级：减重速度 &gt; 总时长 &gt; 总目标。每月减2-4kg为科学推荐范围。
-      </div>
-
-      <div class="btn-group">
-        <button class="btn btn-outline" onclick="goStep(1)">← 返回修改</button>
-        <button class="btn btn-primary" onclick="calcDeficit()">计算热量缺口 →</button>
-      </div>
-    </div>
-
-    <div class="card hidden" id="deficitResult">
-      <h2>📊 热量缺口分析</h2>
-      <div class="form-grid col-3">
-        <div class="macro-card carb">
-          <div class="label">每日热量缺口</div>
-          <div class="value"><span id="dailyDeficit">--</span></div>
-          <div class="unit">kcal/天</div>
-        </div>
-        <div class="macro-card protein">
-          <div class="label">每日摄入目标</div>
-          <div class="value"><span id="dailyTarget">--</span></div>
-          <div class="unit">kcal/天</div>
-        </div>
-        <div class="macro-card fat">
-          <div class="label">预计月减</div>
-          <div class="value"><span id="monthlyLoss">--</span></div>
-          <div class="unit">kg/月</div>
-        </div>
-      </div>
-      <div class="warn-box" id="safetyWarn" style="display:none;"></div>
-      <div class="btn-group">
-        <button class="btn btn-outline" onclick="goStep(1)">← 返回修改</button>
-        <button class="btn btn-primary" onclick="goStep(3)">下一步：选择饮食模式 →</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==================== STEP 3: DIET PLAN ==================== -->
-  <div class="step-panel" id="step3">
-    <div class="card">
-      <h2>🍽️ 第三步：选择减脂饮食模式</h2>
-      <p class="subtitle">根据您的运动习惯和生活偏好，选择最适合的饮食模式</p>
-
-      <div class="diet-cards">
-        <div class="diet-card" id="diet-lowcarb" onclick="selectDiet('lowcarb')">
-          <h3>🔴 低碳减脂</h3>
-          <div style="font-size:13px;color:var(--text-light);">
-            碳水 1.5-2g/kg<br>
-            蛋白质 1.5-1.8g/kg<br>
-            脂肪补足剩余热量
-          </div>
-          <div class="desc">减少胰岛素分泌，促进脂肪氧化供能。碳水占热量15-26%。</div>
-          <div class="suitable">🏷 适合：运动频率低、偏好多肉少主食者</div>
-        </div>
-        <div class="diet-card" id="diet-highcarb" onclick="selectDiet('highcarb')">
-          <h3>🟢 高碳减脂</h3>
-          <div style="font-size:13px;color:var(--text-light);">
-            碳水 2.5-3.5g/kg<br>
-            蛋白质 1.1-1.5g/kg<br>
-            脂肪极少量
-          </div>
-          <div class="desc">充足碳水维持训练强度，通过运动创造缺口。碳水占热量45-65%。</div>
-          <div class="suitable">🏷 适合：高频力量训练（周≥5次）、体力劳动者</div>
-        </div>
-        <div class="diet-card" id="diet-cycle" onclick="selectDiet('cycle')">
-          <h3>🔵 碳循环</h3>
-          <div style="font-size:13px;color:var(--text-light);">
-            低碳日/中碳日/高碳日<br>
-            循环碳水波动<br>
-            蛋白质恒定 1.5g/kg
-          </div>
-          <div class="desc">打破代谢适应性，训练日高碳+休息日低碳。碳水占比波动。</div>
-          <div class="suitable">🏷 适合：中等训练频率、平台期突破、应酬多者</div>
-        </div>
-      </div>
-
-      <div class="warn-box" style="display:none;" id="cycleWarn">
-        ⚠️ 碳循环不适合糖尿病、高血压、心脏病、脂肪肝患者及孕产期女性。建议不超过15天为一个周期。
-      </div>
-
-      <div class="btn-group">
-        <button class="btn btn-outline" onclick="goStep(2)">← 返回修改</button>
-        <button class="btn btn-accent" id="genPlanBtn" onclick="generatePlan()" disabled>生成饮食计划 🎯</button>
-      </div>
-    </div>
-
-    <div class="card hidden" id="planResult">
-      <h2>📋 您的个性化饮食计划</h2>
-      <div id="planContent"></div>
+    <div class="btn-group">
+      <button class="btn btn-outline" onclick="goStep(3)">← 返回</button>
+      <button class="btn btn-accent" id="genPlanBtn" onclick="goStep(5)" disabled>生成饮食计划 →</button>
     </div>
   </div>
 </div>
+
+<!-- ===== STEP 5: DIET PLAN (A/B/C/D/E) ===== -->
+<div class="step-panel" id="step5">
+  <div class="card" id="planResultCard">
+    <h2>📋 第五步：你的饮食计划（五套方案）</h2>
+    <p class="subtitle">系统为你生成了A/B/C/D/E五套方案。A方案免费查看，其余方案可预览概要。</p>
+    <div id="planSummaryHeader"></div>
+    <div id="fivePlanContent"></div>
+    <div class="btn-group">
+      <button class="btn btn-outline" onclick="goStep(4)">← 返回选菜</button>
+      <button class="btn btn-outline" onclick="goStep(6)">下一步：运动计划 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== STEP 6: EXERCISE ===== -->
+<div class="step-panel" id="step6">
+  <div class="card">
+    <h2>🏃 第六步：运动计划</h2>
+    <p class="subtitle">运动不是减脂的必需品，但是加速器。根据你的减脂基调推荐最适合的运动方式。</p>
+    <div id="approachExNote"></div>
+    <div id="exerciseContent"></div>
+    <div class="btn-group">
+      <button class="btn btn-outline" onclick="goStep(5)">← 返回饮食计划</button>
+      <button class="btn btn-primary" onclick="generateFinal()">🎯 生成完整计划</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FINAL RESULT ===== -->
+<div class="card hidden" id="finalResult">
+  <h2>📋 你的完整减脂方案</h2>
+  <div id="finalContent"></div>
+  <div class="export-bar">
+    <button class="btn btn-accent" onclick="copyPlanText()">📋 复制A方案文本</button>
+    <button class="btn btn-lock" onclick="showMoreModal()">🎁 免费获取更多替代方案及减脂指导</button>
+    <span style="font-size:10px;color:var(--text-light);display:block;width:100%;text-align:center;">（PDF导出请在浏览器中按 Ctrl+P → 另存为PDF）</span>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<!-- MODAL: locked plan -->
+<div class="modal-overlay" id="lockModal">
+  <div class="modal-content" style="position:relative;">
+    <button class="modal-close" onclick="closeModal('lockModal')">✕</button>
+    <div class="mc-icon">🔒</div>
+    <h3>获取完整方案</h3>
+    <p>B/C/D/E四套方案已为您生成完毕。<br>入群即可<strong>免费解锁</strong>全部5套方案，<br>还有更多家常菜替代方案及专业减脂指导。</p>
+    <div class="mc-qr">📱 请扫码入群获取<br><small>（二维码占位 — 请替换为实际群二维码）</small></div>
+    <p style="font-size:10px;color:#bbb;">入群后回复"方案"即可获取全部内容</p>
+    <button class="btn btn-primary" onclick="closeModal('lockModal')" style="width:100%;">我知道了</button>
+  </div>
+</div>
+
+<!-- MODAL: more alternatives -->
+<div class="modal-overlay" id="moreModal">
+  <div class="modal-content" style="position:relative;">
+    <button class="modal-close" onclick="closeModal('moreModal')">✕</button>
+    <div class="mc-icon">🎁</div>
+    <h3>免费获取更多</h3>
+    <p>想要<strong>B/C/D/E完整方案</strong>？<br>想要<strong>更多家常菜替代做法</strong>？<br>想要<strong>专业减脂指导</strong>？</p>
+    <p>扫码入群，全部免费获取 👇</p>
+    <div class="mc-qr">📱 请扫码入群<br><small>（二维码占位 — 请替换为实际群二维码）</small></div>
+    <p style="font-size:10px;color:#bbb;">专业营养师在线答疑，上千位减脂伙伴等你</p>
+    <button class="btn btn-primary" onclick="closeModal('moreModal')" style="width:100%;">我知道了</button>
+  </div>
+</div>
+
+<!-- Admin badge -->
+<div class="admin-badge hidden" id="adminBadge">🔧 管理员模式</div>
 
 <script>
-// ===================== GLOBAL STATE =====================
-let state = {
-  gender: 'male', age: 30, height: 170, weight: 70, bodyfat: null, activity: 1.375,
-  bmr: 0, tdee: 0,
-  dailyDeficit: 0, dailyTarget: 0, monthlyLoss: 0,
-  dietMode: '', carbLow: 0, carbHigh: 0, proteinLow: 0, proteinHigh: 0,
+// ===================== STATE =====================
+let S={
+  approach:'', // 'rapid' | 'standard'
+  gender:'male',age:30,height:170,weight:70,activity:1.375,bmr:0,tdee:0,
+  dailyTarget:0,monthlyLoss:0,dietMode:'lowcarb',selectedDishes:new Set(),
+  carbLow:1.5,carbHigh:2.0,proteinLow:1.5,proteinHigh:1.8,
+  exMode:'health',
+  // five plans data cache
+  fivePlans:null
 };
 
-// ===================== FOOD DATABASE =====================
-const FOOD_DB = {
-  // 主食类 (碳水来源) — per 100g 生重
-  carbs: [
-    { name:'大米(生)', kcal:346, carb:77.9, protein:7.4, fat:0.8, category:'主食' },
-    { name:'燕麦片', kcal:377, carb:66.9, protein:14.4, fat:9.7, category:'主食' },
-    { name:'红薯(生)', kcal:86, carb:20.1, protein:1.6, fat:0.2, category:'主食' },
-    { name:'全麦面包', kcal:246, carb:43.0, protein:10.5, fat:3.5, category:'主食' },
-    { name:'糙米(生)', kcal:348, carb:74.1, protein:7.7, fat:2.4, category:'主食' },
-    { name:'玉米(鲜)', kcal:112, carb:22.8, protein:4.0, fat:1.2, category:'主食' },
-    { name:'土豆(生)', kcal:81, carb:17.8, protein:2.0, fat:0.2, category:'主食' },
-    { name:'荞麦面(干)', kcal:337, carb:70.2, protein:11.3, fat:2.3, category:'主食' },
-    { name:'藜麦(生)', kcal:368, carb:64.2, protein:14.1, fat:6.1, category:'主食' },
-    { name:'紫薯(生)', kcal:82, carb:18.3, protein:1.6, fat:0.2, category:'主食' },
-  ],
-  // 蛋白质类 — per 100g
-  proteins: [
-    { name:'鸡胸肉(去皮)', kcal:133, protein:23.1, carb:0.1, fat:5.0, category:'肉类' },
-    { name:'鸡蛋(全蛋)', kcal:144, protein:12.7, carb:1.5, fat:8.8, category:'蛋类', piece:'个(约50g)', pieceWeight:50 },
-    { name:'鸡蛋(蛋白)', kcal:60, protein:11.6, carb:3.1, fat:0.1, category:'蛋类' },
-    { name:'牛肉(瘦)', kcal:125, protein:20.2, carb:1.2, fat:4.2, category:'肉类' },
-    { name:'猪里脊(瘦)', kcal:143, protein:21.3, carb:1.5, fat:6.2, category:'肉类' },
-    { name:'三文鱼', kcal:139, protein:17.2, carb:0, fat:7.8, category:'海鲜' },
-    { name:'虾仁', kcal:93, protein:20.1, carb:0.2, fat:0.9, category:'海鲜' },
-    { name:'豆腐(北)', kcal:81, protein:8.1, carb:4.2, fat:3.7, category:'豆制品' },
-    { name:'牛奶(脱脂)', kcal:35, protein:3.5, carb:5.0, fat:0.2, category:'乳制品' },
-    { name:'希腊酸奶', kcal:97, protein:10.0, carb:4.0, fat:5.0, category:'乳制品' },
-    { name:'豆浆', kcal:31, protein:3.0, carb:2.2, fat:1.6, category:'饮品' },
-    { name:'金枪鱼(罐头水浸)', kcal:116, protein:26.3, carb:0, fat:0.8, category:'海鲜' },
-  ],
-  // 蔬菜类 — per 100g
-  veggies: [
-    { name:'西兰花', kcal:34, carb:6.6, protein:2.8, fat:0.4, category:'蔬菜' },
-    { name:'菠菜', kcal:23, carb:3.6, protein:2.9, fat:0.4, category:'蔬菜' },
-    { name:'生菜', kcal:15, carb:2.8, protein:1.3, fat:0.2, category:'蔬菜' },
-    { name:'黄瓜', kcal:16, carb:2.9, protein:0.8, fat:0.2, category:'蔬菜' },
-    { name:'西红柿', kcal:18, carb:3.9, protein:0.9, fat:0.2, category:'蔬菜' },
-    { name:'胡萝卜', kcal:41, carb:9.6, protein:1.0, fat:0.2, category:'蔬菜' },
-    { name:'青椒', kcal:20, carb:4.6, protein:0.9, fat:0.2, category:'蔬菜' },
-  ],
-  // 脂肪来源 — per 100g
-  fats: [
-    { name:'橄榄油', kcal:899, fat:99.9, protein:0, carb:0, category:'油脂' },
-    { name:'杏仁', kcal:578, fat:49.9, protein:22.1, carb:10.5, category:'坚果' },
-    { name:'核桃', kcal:646, fat:65.2, protein:15.2, carb:3.1, category:'坚果' },
-    { name:'牛油果', kcal:160, fat:14.7, protein:2.0, carb:8.5, category:'水果' },
-    { name:'花生酱', kcal:600, fat:50.0, protein:27.0, carb:12.0, category:'坚果酱' },
-  ],
-  // 水果类 — per 100g
-  fruits: [
-    { name:'苹果', kcal:53, carb:13.8, protein:0.3, fat:0.2, category:'水果' },
-    { name:'香蕉', kcal:93, carb:22.8, protein:1.4, fat:0.2, category:'水果' },
-    { name:'蓝莓', kcal:57, carb:14.5, protein:0.7, fat:0.3, category:'水果' },
-    { name:'橙子', kcal:47, carb:11.8, protein:0.9, fat:0.1, category:'水果' },
-  ],
+// ===================== ADMIN CHECK =====================
+function checkAdmin(){
+  const url=new URL(window.location.href);
+  if(url.searchParams.get('admin')==='true'){sessionStorage.setItem('admin','1');}
+  return sessionStorage.getItem('admin')==='1';
+}
+const IS_ADMIN=checkAdmin();
+if(IS_ADMIN){document.getElementById('adminBadge').classList.remove('hidden');}
+
+// ===================== DISHES DATABASE =====================
+const DISHES = [
+  {id:'bz1',name:'豆浆+煮鸡蛋+素包子(2个)',cat:'breakfast',kcal:310,carbs:44,pro:16,fat:8,ingredients:'无糖豆浆 250ml · 煮鸡蛋 1个 · 素包子 2个（粉丝/韭菜/白菜馅，每个约50g）',cooking:'豆浆买现成或冲豆浆粉。鸡蛋冷水下锅煮10分钟。包子蒸锅热8分钟（冷冻的提前一晚放冷藏解冻）。整套10分钟上桌。',oil:2,sugar:0,time:10,icon:'🥟',sodium:'high',waterRetain:true},
+  {id:'bz2',name:'牛奶+煮鸡蛋+蒸红薯',cat:'breakfast',kcal:300,carbs:47,pro:15,fat:6,ingredients:'脱脂牛奶 200ml · 煮鸡蛋 1个 · 小红薯 1个（约150g）',cooking:'红薯可以前一晚蒸熟放冰箱，早上微波炉热2分钟。鸡蛋煮10分钟。牛奶倒杯里就好了。3分钟搞定出门。',oil:0,sugar:0,time:3,icon:'🍠',sodium:'low',waterRetain:false},
+  {id:'bz3',name:'豆浆+牛肉烧饼',cat:'breakfast',kcal:380,carbs:45,pro:22,fat:12,ingredients:'无糖豆浆 250ml · 牛肉烧饼 1个（约120g，芝麻烧饼夹酱牛肉）',cooking:'烧饼可以买现成的回热。牛肉提前卤好切片夹进去。豆浆冲好。适合食量大、上午干活多的人。',oil:6,sugar:0,time:5,icon:'🥮',sodium:'medium',waterRetain:false},
+  {id:'bz4',name:'小米粥+煮鸡蛋+凉拌黄瓜',cat:'breakfast',kcal:250,carbs:38,pro:14,fat:6,ingredients:'小米 40g（约2汤匙）煮粥 · 煮鸡蛋 1个 · 黄瓜 1根凉拌（香油2g+醋）',cooking:'小米粥：小米+4碗水，煮开后小火熬15分钟。不想早起熬粥？用电饭煲预约功能睡前定时，早上直接喝。黄瓜拍碎拌醋+香油。',oil:2,sugar:0,time:20,icon:'🥣',sodium:'low',waterRetain:false},
+  {id:'bz5',name:'燕麦牛奶粥+煮鸡蛋',cat:'breakfast',kcal:290,carbs:38,pro:18,fat:9,ingredients:'即食燕麦片 40g(👊一拳)·脱脂牛奶200ml·煮鸡蛋1个',cooking:'牛奶微波炉热1分钟，倒进燕麦搅匀等2分钟就能吃。不想热牛奶？开水冲燕麦+奶粉也行。鸡蛋煮10分钟。',oil:0,sugar:0,time:5,icon:'🥣',sodium:'low',waterRetain:false},
+  {id:'bz6',name:'豆浆+猪肉大葱包子(2个)+煮鸡蛋',cat:'breakfast',kcal:360,carbs:42,pro:20,fat:12,ingredients:'无糖豆浆 250ml · 猪肉大葱包子 2个（每个约60g）· 煮鸡蛋 1个',cooking:'包子隔水蒸8分钟（冷冻的提前解冻）。鸡蛋煮10分钟。豆浆冲好。爱吃肉的选这个，饱腹感很强。',oil:5,sugar:0,time:10,icon:'🥟',sodium:'high',waterRetain:true},
+  {id:'bz7',name:'清汤面+荷包蛋+青菜',cat:'breakfast',kcal:340,carbs:52,pro:16,fat:8,ingredients:'干挂面 70g · 鸡蛋 1个 · 青菜 100g · 香油 2g',cooking:'水开下面煮3分钟，打入一个鸡蛋（不打散，直接磕进去），丢青菜烫30秒。碗里放盐+生抽+香油，连汤带面倒进去。5分钟一碗热乎面。',oil:2,sugar:0,time:5,icon:'🍜',sodium:'medium',waterRetain:false},
+  {id:'bz8',name:'杂粮粥+煮鸡蛋+拌豆腐',cat:'breakfast',kcal:270,carbs:42,pro:17,fat:6,ingredients:'杂粮粥 1碗（小米/玉米碴/燕麦米混合40g）· 煮鸡蛋 1个 · 内酯豆腐 100g凉拌（生抽+香油2g）',cooking:'杂粮粥用电饭煲预约煮。鸡蛋煮10分钟。豆腐倒盘子里淋生抽+香油，撒葱花。清淡养胃，适合中老年人。',oil:2,sugar:0,time:20,icon:'🥣',sodium:'low',waterRetain:false},
+
+  {id:'sn1',name:'猪肉大葱包子',cat:'snack',kcal:280,carbs:38,pro:16,fat:8,ingredients:'猪肉大葱包子 4个（每个约60g，冷冻品）· 蘸醋 10g',cooking:'冷冻包子不用解冻，蒸锅水开后蒸12分钟。配一碗紫菜蛋花汤就是一顿完整的饭。',oil:5,sugar:0,time:15,icon:'🥟',sodium:'high',waterRetain:true},
+  {id:'sn2',name:'素馅包子',cat:'snack',kcal:220,carbs:40,pro:10,fat:3,ingredients:'素包子 4个（韭菜鸡蛋/白菜粉丝馅，每个约55g）',cooking:'蒸12分钟即可。素包子热量低，饿的话多吃1-2个也没关系。',oil:2,sugar:0,time:12,icon:'🥟',sodium:'medium',waterRetain:true},
+  {id:'sn3',name:'猪肉白菜水饺',cat:'snack',kcal:380,carbs:48,pro:22,fat:11,ingredients:'速冻水饺 15个（约300g）· 蘸料：醋+生抽+蒜末',cooking:'水开下饺子，用勺背推几下防粘。水再次开后倒半碗凉水（点水），重复3次，饺子全部浮起即可。约8分钟。',oil:6,sugar:0,time:10,icon:'🥟',sodium:'high',waterRetain:true},
+  {id:'sn4',name:'牛肉烧饼',cat:'snack',kcal:350,carbs:40,pro:22,fat:12,ingredients:'芝麻烧饼 1个（约80g）· 酱牛肉 60g（约🖐️半手掌大小）',cooking:'烧饼烤箱/平底锅加热。酱牛肉提前卤好切片夹入。买现成酱牛肉也行。适合做午餐，配一碗汤+凉拌菜。',oil:8,sugar:0,time:5,icon:'🥮',sodium:'medium',waterRetain:false},
+  {id:'sn5',name:'鸡蛋灌饼（少油版）',cat:'snack',kcal:300,carbs:35,pro:14,fat:12,ingredients:'速冻手抓饼皮 1张（约80g）· 鸡蛋 1个 · 生菜 2片 · 食用油 3g',cooking:'①不粘锅刷薄油，放手抓饼皮，中小火煎到微微起泡 ②鸡蛋打散倒在饼上，用铲子摊开 ③翻面再煎1分钟 ④出锅卷生菜，刷一点点甜面酱。比路边摊少用一半油。',oil:3,sugar:0,time:5,icon:'🫓',sodium:'medium',waterRetain:false},
+
+  {id:'flatbread',name:'大饼/烙饼',cat:'staple',kcal:230,carbs:45,pro:8,fat:2,ingredients:'大饼 1张（约100g，市售成品）',cooking:'买现成的回热。平底锅不放油，中小火每面烙1分钟，软了就行。配炒菜蘸汤汁吃很香。',oil:0,sugar:0,time:3,icon:'🫓',sodium:'low',waterRetain:false},
+  {id:'rice',name:'白米饭',cat:'staple',kcal:170,carbs:38,pro:3.5,fat:0.4,ingredients:'大米 75g 生重 → 煮熟约170g（👊一拳多）',cooking:'电饭煲正常煮饭。水量：米面以上食指第一关节。',oil:0,sugar:0,time:30,icon:'🍚',sodium:'low',waterRetain:false},
+  {id:'sweetpotato',name:'蒸红薯',cat:'staple',kcal:130,carbs:30,pro:2.4,fat:0.3,ingredients:'红薯 150g（约👊一个拳头大小，中等个头）',cooking:'洗净不去皮，蒸锅水开后蒸20分钟。筷子能轻松插透即可。',oil:0,sugar:0,time:25,icon:'🍠',sodium:'low',waterRetain:false},
+  {id:'corn',name:'煮玉米',cat:'staple',kcal:165,carbs:34,pro:6,fat:1.8,ingredients:'甜玉米 1根约200g',cooking:'冷水下锅，水开后煮15分钟。也可蒸，更甜。',oil:0,sugar:0,time:20,icon:'🌽',sodium:'low',waterRetain:false},
+  {id:'milletporridge',name:'小米粥',cat:'staple',kcal:140,carbs:28,pro:4,fat:1.5,ingredients:'小米 40g（约2汤匙）· 水 800ml',cooking:'小米淘洗一遍（别搓），水开下米，小火熬15-20分钟。想省事用电饭煲预约。',oil:0,sugar:0,time:20,icon:'🥣',sodium:'low',waterRetain:false},
+  {id:'noodles',name:'清汤挂面',cat:'staple',kcal:280,carbs:55,pro:10,fat:2,ingredients:'干挂面 80g · 青菜 100g · 盐 1g',cooking:'水开下面，煮4分钟。快熟时丢青菜烫30秒。碗里放盐+生抽+葱花，面汤冲开，捞面入碗。',oil:0,sugar:0,time:10,icon:'🍜',sodium:'medium',waterRetain:false},
+
+  {id:'tomatoegg',name:'番茄炒蛋',cat:'meat',kcal:240,carbs:12,pro:15,fat:14,ingredients:'鸡蛋 2个（约100g）· 西红柿 1个中号（约180g）· 食用油 5g（1茶匙）',cooking:'①鸡蛋打散，热锅凉油炒熟盛出 ②番茄切块，中火炒出汁（约2分钟）③倒回鸡蛋，加盐1g，翻炒30秒出锅。全程不加水，番茄自己会出汁。',oil:5,sugar:0,time:8,icon:'🍳',sodium:'low',waterRetain:false,proteinDensity:'medium'},
+  {id:'greenpepperpork',name:'青椒肉丝',cat:'meat',kcal:260,carbs:8,pro:27,fat:14,ingredients:'猪里脊 120g（🖐️约一手掌）· 青椒 2个（约180g）· 食用油 8g（约2茶匙）',cooking:'①里脊切丝，加生抽5g+淀粉3g抓匀腌5分钟 ②热锅倒油，下肉丝滑散至变白盛出 ③余油炒青椒丝1分钟，倒回肉丝，加盐1g，大火翻炒30秒。',oil:8,sugar:0,time:15,icon:'🫑',sodium:'medium',waterRetain:false,proteinDensity:'high'},
+  {id:'garlicshrimp',name:'蒜蓉虾仁',cat:'meat',kcal:180,carbs:3,pro:28,fat:7,ingredients:'虾仁 150g（约15-18只）· 蒜 3瓣 · 食用油 5g（1茶匙）',cooking:'①虾仁加料酒5g+盐1g抓腌5分钟 ②蒜切末，热锅冷油小火炒香 ③转大火下虾仁，翻炒1分半至变红卷曲即可。',oil:5,sugar:0,time:10,icon:'🦐',sodium:'low',waterRetain:false,proteinDensity:'high',isSeafood:true},
+  {id:'steamedfish',name:'清蒸鱼块',cat:'meat',kcal:200,carbs:1,pro:30,fat:9,ingredients:'鱼块（鲈鱼/草鱼/巴沙鱼）150g · 姜3片·葱1段·蒸鱼豉油8g·油3g',cooking:'①鱼块抹盐+姜片腌10分钟 ②水开上锅大火蒸8分钟 ③倒掉腥水，铺葱丝淋蒸鱼豉油 ④热3g油浇葱丝上。',oil:3,sugar:0,time:20,icon:'🐟',sodium:'medium',waterRetain:false,proteinDensity:'high',isSeafood:true},
+  {id:'chickenbreast',name:'香煎鸡胸',cat:'meat',kcal:220,carbs:1,pro:35,fat:9,ingredients:'鸡胸肉 150g（🖐️约1.2手掌）· 食用油 5g · 黑胡椒/孜然随意',cooking:'①鸡胸横片两薄片 ②加盐+黑胡椒+生抽腌10分钟 ③不粘锅刷薄油，中小火每面煎3分钟。关键：不要频繁翻面！',oil:5,sugar:0,time:18,icon:'🍗',sodium:'low',waterRetain:false,proteinDensity:'high'},
+  {id:'beefonion',name:'洋葱炒牛肉',cat:'meat',kcal:250,carbs:12,pro:28,fat:10,ingredients:'瘦牛肉 120g（🖐️一手掌）· 洋葱半个（100g）· 油8g（2茶匙）',cooking:'①牛肉逆纹切薄片，生抽+淀粉腌10分钟 ②热油大火滑牛肉30秒盛出 ③炒软洋葱，倒回牛肉+盐+蚝油，大火翻30秒。',oil:8,sugar:0,time:15,icon:'🧅',sodium:'medium',waterRetain:false,proteinDensity:'high'},
+  {id:'mapotofu',name:'家常豆腐（少油版）',cat:'meat',kcal:210,carbs:10,pro:17,fat:12,ingredients:'北豆腐 200g · 瘦肉末 30g · 油8g · 豆瓣酱10g',cooking:'①豆腐切块焯水1分钟 ②热油炒肉末+豆瓣酱出红油 ③加半碗水下豆腐炖3分钟 ④水淀粉勾芡撒葱花。',oil:8,sugar:0,time:15,icon:'🫘',sodium:'high',waterRetain:true,proteinDensity:'medium'},
+  {id:'boiledchicken',name:'白切鸡胸',cat:'meat',kcal:175,carbs:0,pro:33,fat:5,ingredients:'鸡胸肉 150g · 姜3片 · 蘸料：生抽+醋+蒜末',cooking:'①水+姜片烧开 ②放鸡胸，水重开后最小火盖盖焖8分钟 ③关火再焖5分钟（余温焖熟不柴）④切片蘸料吃。',oil:0,sugar:0,time:20,icon:'🍖',sodium:'low',waterRetain:false,proteinDensity:'high'},
+  {id:'porkcabbage',name:'肉片炒白菜',cat:'meat',kcal:220,carbs:10,pro:22,fat:11,ingredients:'猪里脊 100g · 大白菜 250g（4-5片叶）· 油8g',cooking:'①肉切薄片生抽腌5分钟 ②热油炒肉片变色盛出 ③余油炒白菜帮2分钟再下叶子 ④倒回肉片+盐炒匀。',oil:8,sugar:0,time:10,icon:'🥬',sodium:'medium',waterRetain:false,proteinDensity:'high'},
+
+  {id:'garlicbroccoli',name:'蒜蓉西兰花',cat:'veggie',kcal:85,carbs:10,pro:6,fat:5,ingredients:'西兰花 200g（🤲双手一捧）· 蒜 3瓣 · 油 5g',cooking:'①西兰花掰小朵焯水1分钟过凉 ②蒜末小火炒香 ③下西兰花+盐+蚝油大火翻炒30秒。',oil:5,sugar:0,time:8,icon:'🥦',sodium:'low',waterRetain:false,highPotassium:true},
+  {id:'stirgreens',name:'炒青菜',cat:'veggie',kcal:80,carbs:6,pro:3,fat:5,ingredients:'时令绿叶菜 250g（生菜/菜心/上海青/空心菜均可🤲一大捧）· 蒜2瓣·油5g',cooking:'①青菜洗净沥干 ②热油蒜末爆香 ③大火下菜快翻1分钟变软 ④加盐翻两下出锅。秘诀：火大、手快、不盖盖。',oil:5,sugar:0,time:5,icon:'🥬',sodium:'low',waterRetain:false,highPotassium:true},
+  {id:'cucumbersalad',name:'凉拌黄瓜',cat:'veggie',kcal:65,carbs:6,pro:2,fat:4,ingredients:'黄瓜 1根（约200g）· 蒜2瓣·醋5g·香油3g·生抽5g',cooking:'①黄瓜用刀背拍裂再切段（拍的最入味！）②蒜末+醋+生抽+香油调汁 ③浇上拌匀腌5分钟。',oil:3,sugar:0,time:5,icon:'🥒',sodium:'low',waterRetain:false,highPotassium:true},
+  {id:'cabbagestir',name:'醋溜白菜',cat:'veggie',kcal:75,carbs:9,pro:2,fat:4,ingredients:'大白菜帮 250g · 干辣椒2个 · 油5g · 醋8g',cooking:'①白菜帮斜刀切片 ②热油干辣椒爆香 ③下白菜大火炒2分钟变透明 ④沿锅边淋醋+盐翻炒出锅。',oil:5,sugar:0,time:8,icon:'🥬',sodium:'low',waterRetain:false,highPotassium:true},
+  {id:'scrambledeggplant',name:'蒜蓉茄子（少油版）',cat:'veggie',kcal:110,carbs:12,pro:4,fat:6,ingredients:'长茄子 1根（200g）· 蒜4瓣 · 油5g · 生抽8g',cooking:'①茄子切条撒盐腌10分钟挤掉水分（关键：不吸油！）②热油炒蒜末下茄子中火3分钟 ③加生抽+少许水盖盖焖2分钟。',oil:5,sugar:0,time:13,icon:'🍆',sodium:'medium',waterRetain:false,highPotassium:true},
+  {id:'tomatocabbage',name:'番茄炒菜花',cat:'veggie',kcal:90,carbs:14,pro:6,fat:3,ingredients:'菜花 200g（🤲一捧）· 番茄1个（180g）· 油4g',cooking:'①菜花掰小朵焯水1分钟 ②番茄炒出汁 ③下菜花+盐焖1分钟。',oil:4,sugar:0,time:10,icon:'🥬',sodium:'low',waterRetain:false,highPotassium:true},
+
+  {id:'eggdrop soup',name:'紫菜蛋花汤',cat:'soup',kcal:60,carbs:3,pro:5,fat:3,ingredients:'鸡蛋1个·干紫菜2g·香油2g·盐1g·葱花',cooking:'①水开下撕碎紫菜 ②最小火沿筷淋蛋液成蛋花 ③关火加盐+香油+葱花，3分钟。',oil:2,sugar:0,time:3,icon:'🍲',sodium:'low',waterRetain:false},
+  {id:'tomatosoup',name:'番茄蛋汤',cat:'soup',kcal:70,carbs:6,pro:5,fat:3,ingredients:'番茄1个（180g）·鸡蛋1个·油2g·盐1g',cooking:'①番茄炒出汁 ②加两碗水煮开 ③淋蛋花+盐+葱花。',oil:2,sugar:0,time:5,icon:'🍲',sodium:'low',waterRetain:false},
+];
+
+// ===================== EXERCISE DATABASE =====================
+const EXERCISES = {
+  health: {
+    name:'🧘 养生模式',desc:'适合运动基础弱、中老年人、想轻松动一动的人群',
+    items:[
+      {name:'散步',icon:'🚶',mets:3.5,unit:'30分钟/次',how:'饭后半小时，速度能边走边聊天',freq:'每天'},
+      {name:'快走',icon:'🏃',mets:5.0,unit:'30分钟/次',how:'比散步快，微微出汗，手臂摆起来',freq:'每周5天'},
+      {name:'八段锦/太极拳',icon:'🧘',mets:3.5,unit:'20分钟/次',how:'B站搜"八段锦跟练"，早晚各一次',freq:'每天'},
+      {name:'家务劳动',icon:'🧹',mets:3.0,unit:'累计30分钟',how:'拖地、擦窗、整理房间都算',freq:'日常'},
+    ],
+  },
+  cardio: {
+    name:'🏃 积极有氧模式',desc:'适合有一定运动基础、想加速减脂的人群',
+    items:[
+      {name:'慢跑',icon:'🏃',mets:7.0,unit:'30分钟/次',how:'配速6-7分/公里，能断续说话不喘',freq:'每周4-5次'},
+      {name:'跳绳',icon:'⭕',mets:11.0,unit:'15分钟/次',how:'分组：跳1分钟+休息30秒，×15组',freq:'每周3-4次'},
+      {name:'登山/爬楼梯',icon:'⛰️',mets:7.0,unit:'30分钟/次',how:'周末登山，平日走楼梯代替电梯',freq:'每周1-2次'},
+      {name:'骑行',icon:'🚴',mets:6.5,unit:'45分钟/次',how:'户外骑行或动感单车，中速有节奏',freq:'每周2-3次'},
+      {name:'游泳',icon:'🏊',mets:8.0,unit:'30分钟/次',how:'蛙泳/自由泳，中间休息不超过1分钟',freq:'每周2-3次'},
+    ],
+  },
+  gym: {
+    name:'💪 健身房进阶模式',desc:'适合有健身基础、追求塑形增肌的人群',
+    items:[
+      {name:'深蹲（负重/自重）',icon:'🦵',mets:5.5,unit:'4组×12次',how:'脚肩同宽，下蹲到大腿平行地面，膝盖不内扣',freq:'每周2次'},
+      {name:'俯卧撑',icon:'💪',mets:5.0,unit:'4组×力竭',how:'标准位，身体一条线，组间休息60秒',freq:'每周3次'},
+      {name:'哑铃/杠铃卧推',icon:'🏋️',mets:5.0,unit:'4组×10次',how:'选能标准完成10次的重量',freq:'每周2次'},
+      {name:'哑铃划船（背）',icon:'🏋️',mets:5.0,unit:'4组×12次/侧',how:'单臂交替，肘贴身体，收紧肩胛骨',freq:'每周2次'},
+      {name:'臀桥/硬拉',icon:'🍑',mets:5.5,unit:'4组×15次',how:'脚跟着地，臀部发力推起，顶峰停1秒',freq:'每周2次'},
+      {name:'平板支撑+卷腹',icon:'🪨',mets:3.5,unit:'3组×力竭',how:'核心收紧不塌腰，做完接20个卷腹',freq:'每天'},
+    ],
+  },
 };
 
-// ===================== STEP NAVIGATION =====================
-function goStep(n) {
-  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('step' + n).classList.add('active');
-  document.querySelectorAll('.step-dot').forEach(d => d.classList.remove('active'));
-  const dot = document.querySelector(`.step-dot[data-step="${n}"]`);
-  if (dot) dot.classList.add('active');
-  // Mark previous as done
-  for (let i = 1; i < n; i++) {
-    const prev = document.querySelector(`.step-dot[data-step="${i}"]`);
-    if (prev) prev.classList.add('done');
-  }
-  const targetEl = document.getElementById('step' + n);
-  if (targetEl) {
-    const y = targetEl.getBoundingClientRect().top + window.pageYOffset - 80;
-    window.scrollTo({ top: y, behavior: 'smooth' });
-  }
+const CAT_NAMES = {breakfast:'🌅 早餐（选一套完整的）',staple:'🍚 主食',meat:'🥩 家常荤菜',veggie:'🥬 家常素菜',soup:'🍲 快手汤',snack:'🥟 包子/饺子/饼'};
+const ALWAYS_AVAILABLE = {
+  staple: DISHES.find(d=>d.id==='rice'),
+  veggie: DISHES.find(d=>d.id==='stirgreens'),
+  meat: DISHES.find(d=>d.id==='tomatoegg'),
+  breakfast: DISHES.find(d=>d.id==='bz5'),
+};
+
+// ===================== NAVIGATION =====================
+function clearErrors(){document.querySelectorAll('.input-error').forEach(e=>e.classList.remove('input-error'));document.querySelectorAll('.error-msg').forEach(e=>e.classList.remove('show'));document.querySelectorAll('.step-error').forEach(e=>e.classList.remove('step-error'));}
+
+function showFieldError(id,msg){
+  const el=document.getElementById(id);if(!el)return;
+  el.classList.add('input-error');
+  let errEl=el.parentNode.querySelector('.error-msg');
+  if(!errEl){errEl=document.createElement('div');errEl.className='error-msg';el.parentNode.appendChild(errEl);}
+  errEl.textContent=msg;errEl.classList.add('show');
+  el.scrollIntoView({behavior:'smooth',block:'center'});
 }
 
-// ===================== STEP 1: BMR =====================
-function calcBMR() {
-  state.gender = document.querySelector('input[name="gender"]:checked').value;
-  state.age = parseInt(document.getElementById('age').value) || 30;
-  state.height = parseFloat(document.getElementById('height').value) || 170;
-  state.weight = parseFloat(document.getElementById('weight').value) || 70;
-  state.bodyfat = parseFloat(document.getElementById('bodyfat').value) || null;
-  state.activity = parseFloat(document.getElementById('activity').value);
+function goStep(n){
+  clearErrors();
+  // Approach required
+  if(n>=2&&!S.approach){alert('⚠️ 请先在第一步选择减脂基调（快速减重或规范减脂）');goStep(1);return;}
+  document.querySelectorAll('.step-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('step'+n).classList.add('active');
+  document.querySelectorAll('.step-dot').forEach(d=>d.classList.remove('active'));
+  const dot=document.querySelector('.step-dot[data-step="'+n+'"]');
+  if(dot)dot.classList.add('active');
+  for(let i=1;i<n;i++){const p=document.querySelector('.step-dot[data-step="'+i+'"]');if(p)p.classList.add('done');}
 
-  // Mifflin-St Jeor
-  let bmr;
-  if (state.gender === 'male') {
-    bmr = 10 * state.weight + 6.25 * state.height - 5 * state.age + 5;
-  } else {
-    bmr = 10 * state.weight + 6.25 * state.height - 5 * state.age - 161;
+  // Actions on entering steps
+  if(n===3)updateDeficitOptions();
+  if(n===4){initDishSelector();updateApproachFoodNote();}
+  if(n===5){
+    if(!S.dailyTarget){alert('⚠️ 请先完成前几步！');goStep(3);return;}
+    if(!S.dietMode){alert('⚠️ 请先选择减脂模式！');goStep(4);return;}
+    generateFivePlans();
   }
-  state.bmr = Math.round(bmr);
-  state.tdee = Math.round(bmr * state.activity);
+  if(n===6){renderExerciseStep();}
 
-  document.getElementById('bmrVal').textContent = state.bmr;
-  document.getElementById('tdeeVal').textContent = state.tdee;
+  const el=document.getElementById('step'+n);
+  if(el){el.scrollIntoView({behavior:'smooth',block:'start'});window.scrollTo({top:el.getBoundingClientRect().top+window.pageYOffset-60,behavior:'smooth'});}
+}
+
+// ===================== STEP 1: APPROACH =====================
+function selectApproach(mode){
+  S.approach=mode;
+  document.querySelectorAll('.approach-card').forEach(c=>c.classList.remove('selected'));
+  const card=document.getElementById(mode==='rapid'?'ac-rapid':'ac-standard');
+  if(card)card.classList.add('selected');
+  document.getElementById('btnApproachNext').disabled=false;
+
+  const info=document.getElementById('approachInfo');
+  info.style.display='block';
+  if(mode==='rapid'){
+    info.innerHTML='<strong>⚡ 快速减重模式：</strong>热量缺口500-1000kcal/天，前期体重下降快但部分来自水分。将<strong>避免高钠储水食物</strong>（包子/饺子/腊肉等），推荐高钾排水食物（冬瓜/黄瓜/菠菜等）。适合短期冲刺（2-6周）。';
+    document.getElementById('deficitSubtitle').textContent='快速减重模式 · 日缺口可达500-1000kcal';
+  }else{
+    info.innerHTML='<strong>🎯 规范减脂模式：</strong>每日热量缺口<strong>上限500kcal</strong>，以<strong>腰围（男<85cm/女<80cm）、腰臀比（男<0.9/女<0.85）</strong>为核心衡量标准，忽略体重短期波动。推荐高蛋白肉类，配合力量训练保留肌肉。适合长期规划（3-12个月）。';
+    document.getElementById('deficitSubtitle').textContent='规范减脂模式 · 日缺口上限500kcal';
+  }
+  if(window._hmt)_hmt.push(['_trackEvent','step1','approach',mode]);
+}
+
+// ===================== STEP 2: BMR =====================
+function calcBMR(){
+  S.gender=document.querySelector('input[name="gender"]:checked').value;
+  S.age=parseInt(document.getElementById('age').value)||30;
+  S.height=parseFloat(document.getElementById('height').value)||170;
+  S.weight=parseFloat(document.getElementById('weight').value)||70;
+  S.activity=parseFloat(document.getElementById('activity').value);
+  const b=S.gender==='male'?10*S.weight+6.25*S.height-5*S.age+5:10*S.weight+6.25*S.height-5*S.age-161;
+  S.bmr=Math.round(b);S.tdee=Math.round(b*S.activity);
+  document.getElementById('bmrVal').textContent=S.bmr;
+  document.getElementById('tdeeVal').textContent=S.tdee;
   document.getElementById('bmrResult').classList.remove('hidden');
+  if(window._hmt)_hmt.push(['_trackEvent','step2','calcBMR','体重'+S.weight+'kg']);
+}
 
-  // If bodyfat provided, show adjustment note
-  if (state.bodyfat) {
-    const leanMass = state.weight * (1 - state.bodyfat / 100);
-    const fatMass = state.weight * state.bodyfat / 100;
-    // Rough: muscle burns ~13 kcal/kg, fat burns ~4.5 kcal/kg
-    const adjustedBMR = Math.round(leanMass * 13 + fatMass * 4.5 + 300);
-    // Add info
-    let noteEl = document.getElementById('bodyfatNote');
-    if (!noteEl) {
-      noteEl = document.createElement('div');
-      noteEl.id = 'bodyfatNote';
-      noteEl.className = 'info-box';
-      document.getElementById('bmrResult').appendChild(noteEl);
+// ===================== STEP 3: DEFICIT =====================
+function updateDeficitOptions(){
+  const sel=document.getElementById('lossPace');
+  const currentVal=sel.value;
+  if(S.approach==='standard'){
+    // Standard: cap at 500kcal deficit
+    sel.innerHTML='<option value="1">🐢 温和：月减1.2kg（日缺口300kcal）</option><option value="2" selected>✅ 推荐：月减2kg（日缺口500kcal · 上限）</option><option value="custom">🔧 自定义</option>';
+    const capInfo=document.getElementById('standardCapInfo');
+    capInfo.className='success-box';
+    capInfo.innerHTML='<strong>🔒 规范减脂上限：</strong>每日热量缺口不超过<strong>500kcal</strong>。科学研究表明500kcal是保留肌肉的"临界点"，超过此值肌肉流失风险显著增加。配合1.6-2.2g/kg蛋白质+力量训练效果最佳。';
+    capInfo.classList.remove('hidden');
+    document.getElementById('deficitInfo').textContent='💡 规范减脂注重体脂率下降而非体重。每周测量腰围+臀围，体重仅作参考。';
+  }else{
+    sel.innerHTML='<option value="2" selected>✅ 推荐：月减2kg（日缺口500kcal）</option><option value="1">🐢 温和：月减1.2kg（日缺口300kcal）</option><option value="3">⚡ 积极：月减3kg（日缺口750kcal）</option><option value="4">🚀 激进：月减4kg（日缺口1000kcal）</option><option value="custom">🔧 自定义</option>';
+    document.getElementById('standardCapInfo').classList.add('hidden');
+    document.getElementById('deficitInfo').textContent='💡 任选一种填写。月减2-4kg最科学。1kg脂肪≈7700kcal。前期体重下降含水分。';
+  }
+  if(currentVal==='3'||currentVal==='4'){
+    sel.value='2'; // reset to recommended if switching to standard
+  }
+}
+
+function updateLossCalc(){document.getElementById('customLossGroup').classList.toggle('hidden',document.getElementById('lossPace').value!=='custom');}
+
+function calcDeficit(){
+  if(!S.tdee){alert('请先填写身体数据！');return;}
+  const pace=document.getElementById('lossPace').value;
+  const tm=parseFloat(document.getElementById('totalMonths').value)||0;
+  const tl=parseFloat(document.getElementById('totalLoss').value)||0;
+  let ml;
+  if(pace==='custom'){
+    ml=parseFloat(document.getElementById('customLoss').value)||2;
+    // Cap for standard
+    if(S.approach==='standard'){
+      const maxML=500*30/7700;
+      if(ml>maxML){ml=Math.round(maxML*10)/10;alert('⚠️ 规范减脂模式下月减上限约'+ml+'kg（对应500kcal/天缺口）');}
     }
-    noteEl.innerHTML = `<strong>📐 体脂率修正估算：</strong>基于您的体脂率${state.bodyfat}%，瘦体重${leanMass.toFixed(1)}kg，体脂量${fatMass.toFixed(1)}kg，修正后BMR约为 <strong>${adjustedBMR} kcal</strong>（参考值，最终以Mifflin-St Jeor公式为准）`;
-  }
-
-  // Mark step 1 as done
-  document.querySelector('.step-dot[data-step="1"]').classList.add('done');
-}
-
-// ===================== STEP 2: DEFICIT =====================
-function updateLossCalc() {
-  const pace = document.getElementById('lossPace').value;
-  document.getElementById('customLossGroup').classList.toggle('hidden', pace !== 'custom');
-}
-
-function calcDeficit() {
-  if (state.tdee === 0) { alert('请先在第一步计算基础代谢！'); return; }
-
-  const pace = document.getElementById('lossPace').value;
-  const totalMonths = parseFloat(document.getElementById('totalMonths').value) || 0;
-  const totalLoss = parseFloat(document.getElementById('totalLoss').value) || 0;
-
-  let monthlyLoss;
-  if (pace === 'custom') {
-    monthlyLoss = parseFloat(document.getElementById('customLoss').value) || 2;
-  } else if (pace === '1') { monthlyLoss = 1.2; }
-  else if (pace === '2') { monthlyLoss = 2; }
-  else if (pace === '3') { monthlyLoss = 3; }
-  else if (pace === '4') { monthlyLoss = 4; }
-  else { monthlyLoss = 2; }
-
-  // 优先级：减重速度 > 总时长+总目标 > 总目标单独 > 总时长单独
-  if (totalMonths > 0 && totalLoss > 0) {
-    monthlyLoss = totalLoss / totalMonths;
-  } else if (totalLoss > 0) {
-    // 只填了总目标，按推荐速度（默认2kg/月）
-    monthlyLoss = Math.min(totalLoss, 2);
-  } else if (totalMonths > 0 && pace === 'custom') {
-    // 自定义速度 + 指定时长，保持自定义值
-    monthlyLoss = monthlyLoss;
-  }
-
-  const monthlyDeficit = monthlyLoss * 7700;
-  const dailyDeficit = Math.round(monthlyDeficit / 30);
-  const dailyTarget = state.tdee - dailyDeficit;
-
-  // Safety checks
-  const minCal = state.gender === 'female' ? 1200 : 1500;
-  let adjustedTarget = dailyTarget;
-  let adjustedDeficit = dailyDeficit;
-  let warnMsg = '';
-
-  if (dailyTarget < minCal) {
-    adjustedTarget = minCal;
-    adjustedDeficit = state.tdee - adjustedTarget;
-    const adjMonthlyLoss = ((adjustedDeficit * 30) / 7700).toFixed(1);
-    warnMsg = `⚠️ 每日摄入目标（${dailyTarget} kcal）低于安全下限（${minCal} kcal），已自动调整为 <strong>${adjustedTarget} kcal/天</strong>。调整后预计月减 <strong>${adjMonthlyLoss} kg</strong>。`;
-  }
-
-  if (monthlyLoss > 4) {
-    warnMsg += (warnMsg ? '<br>' : '') + `⚠️ 月减 ${monthlyLoss}kg 偏激进，建议不超过4kg/月，且减重期间注意补充微量元素。`;
-  }
-
-  state.dailyDeficit = adjustedDeficit;
-  state.dailyTarget = adjustedTarget;
-  state.monthlyLoss = monthlyLoss;
-
-  document.getElementById('dailyDeficit').textContent = adjustedDeficit;
-  document.getElementById('dailyTarget').textContent = adjustedTarget;
-  document.getElementById('monthlyLoss').textContent = monthlyLoss;
+  }else if(pace==='1')ml=1.2;else if(pace==='2')ml=2;else if(pace==='3')ml=3;else if(pace==='4')ml=4;else ml=2;
+  if(tm>0&&tl>0)ml=tl/tm;else if(tl>0)ml=Math.min(tl,S.approach==='standard'?2:4);
+  let dd=Math.round(ml*7700/30);
+  // Cap deficit for standard mode
+  if(S.approach==='standard'&&dd>500){dd=500;ml=Math.round(dd*30/7700*10)/10;}
+  let dt=S.tdee-dd;
+  const min=S.gender==='female'?1200:1500;
+  let w='';
+  if(dt<min){dt=min;const am=((S.tdee-dt)*30/7700).toFixed(1);w='⚠️ 摄入低于安全下限，已调至 <strong>'+dt+' kcal/天</strong>，月减约<strong>'+am+'kg</strong>。';}
+  if(ml>4)w+=(w?'<br>':'')+'⚠️ 月减'+ml+'kg偏激进，建议不超过4kg/月。';
+  S.dailyTarget=dt;S.monthlyLoss=ml;
+  document.getElementById('dailyDeficit').textContent=S.tdee-dt;
+  document.getElementById('dailyTarget').textContent=dt;
+  document.getElementById('monthlyLoss').textContent=ml;
   document.getElementById('deficitResult').classList.remove('hidden');
-
-  const warnEl = document.getElementById('safetyWarn');
-  if (warnMsg) {
-    warnEl.innerHTML = warnMsg;
-    warnEl.style.display = 'block';
-  } else {
-    warnEl.style.display = 'none';
-  }
-
-  document.querySelector('.step-dot[data-step="2"]').classList.add('done');
+  const we=document.getElementById('safetyWarn');
+  if(w){we.innerHTML=w;we.style.display='block';}else we.style.display='none';
+  if(window._hmt)_hmt.push(['_trackEvent','step3','calcDeficit','目标'+S.dailyTarget+'kcal']);
 }
 
-// ===================== STEP 3: DIET SELECTION =====================
-function selectDiet(mode) {
-  state.dietMode = mode;
-  document.querySelectorAll('.diet-card').forEach(c => c.classList.remove('selected'));
-  document.getElementById('diet-' + mode).classList.add('selected');
-  document.getElementById('genPlanBtn').disabled = false;
-
-  const cycleWarn = document.getElementById('cycleWarn');
-  cycleWarn.style.display = mode === 'cycle' ? 'block' : 'none';
-
-  // Set defaults per mode
-  switch(mode) {
-    case 'lowcarb':
-      state.carbLow = 1.5; state.carbHigh = 2.0;
-      state.proteinLow = 1.5; state.proteinHigh = 1.8;
-      break;
-    case 'highcarb':
-      state.carbLow = 2.5; state.carbHigh = 3.5;
-      state.proteinLow = 1.1; state.proteinHigh = 1.5;
-      break;
-    case 'cycle':
-      state.carbLow = 1.0; state.carbHigh = 3.5;
-      state.proteinLow = 1.5; state.proteinHigh = 1.5;
-      break;
+// ===================== STEP 4: DISH SELECTOR =====================
+function updateApproachFoodNote(){
+  const el=document.getElementById('approachFoodNote');
+  if(S.approach==='rapid'){
+    el.innerHTML='<div class="warn-box"><strong>⚡ 快速减重提示：</strong>高钠食物（包子/饺子馅料重、腊肉等）已标记为 <span class="food-tag water">🚫易储水</span>，建议少选。高钾蔬菜 <span class="food-tag recommend">🌊排水推荐</span> 有助于消除水肿。</div>';
+  }else{
+    el.innerHTML='<div class="success-box"><strong>🎯 规范减脂提示：</strong>高蛋白肉类（鸡胸/牛肉/鱼虾）已标记为 <span class="food-tag protein">💪高蛋白</span>，建议多选以支持肌肉保留。每日蛋白质目标1.6-2.2g/kg。</div>';
   }
 }
 
-// ===================== PLAN GENERATION =====================
-function generatePlan() {
-  if (state.tdee === 0) { alert('请先完成第一步和第二步！'); return; }
-
-  const mode = state.dietMode;
-  const w = state.weight;
-  const target = state.dailyTarget;
-
-  let planHTML = '';
-
-  if (mode === 'lowcarb' || mode === 'highcarb') {
-    // Single mode
-    const proteinG = Math.round(w * ((state.proteinLow + state.proteinHigh) / 2) * 10) / 10;
-    const carbG = Math.round(w * ((state.carbLow + state.carbHigh) / 2) * 10) / 10;
-    const proteinKcal = proteinG * 4;
-    const carbKcal = carbG * 4;
-    const fatKcal = target - proteinKcal - carbKcal;
-    const fatG = Math.round(Math.max(0, fatKcal) / 9 * 10) / 10;
-
-    const carbPct = Math.round(carbKcal / target * 100);
-    const proteinPct = Math.round(proteinKcal / target * 100);
-    const fatPct = Math.round(100 - carbPct - proteinPct);
-
-    planHTML = buildSinglePlanHTML(carbG, proteinG, fatG, carbPct, proteinPct, fatPct, mode);
-
-  } else if (mode === 'cycle') {
-    // Carb cycling — 3 day types
-    const proteinG = Math.round(w * 1.5 * 10) / 10; // constant across days
-
-    // Low carb day
-    const lowCarbG = Math.round(w * 1.5);
-    const lowCarbKcal = lowCarbG * 4;
-    const lowProteinKcal = proteinG * 4;
-    const lowFatKcal = target - lowCarbKcal - lowProteinKcal;
-    const lowFatG = Math.round(Math.max(0, lowFatKcal) / 9 * 10) / 10;
-
-    // Medium carb day
-    const midCarbG = Math.round(w * 2.25);
-    const midCarbKcal = midCarbG * 4;
-    const midProteinKcal = proteinG * 4;
-    const midFatKcal = target - midCarbKcal - midProteinKcal;
-    const midFatG = Math.round(Math.max(0, midFatKcal) / 9 * 10) / 10;
-
-    // High carb day
-    const highCarbG = Math.round(w * 3.0);
-    const highCarbKcal = highCarbG * 4;
-    const highProteinKcal = proteinG * 4;
-    const highFatKcal = target - highCarbKcal - highProteinKcal;
-    const highFatG = Math.round(Math.max(0, highFatKcal) / 9 * 10) / 10;
-
-    planHTML = buildCyclePlanHTML(proteinG, lowCarbG, midCarbG, highCarbG, lowFatG, midFatG, highFatG);
-  }
-
-  document.getElementById('planContent').innerHTML = planHTML;
-  document.getElementById('planResult').classList.remove('hidden');
-  document.querySelector('.step-dot[data-step="3"]').classList.add('done');
-
-  // Scroll to plan
-  document.getElementById('planResult').scrollIntoView({ behavior: 'smooth' });
+function getDishTags(d){
+  let tags='';
+  if(S.approach==='rapid'&&d.waterRetain)tags+='<span class="food-tag water">🚫易储水</span>';
+  if(S.approach==='rapid'&&d.highPotassium)tags+='<span class="food-tag recommend">🌊排水推荐</span>';
+  if(S.approach==='standard'&&d.proteinDensity==='high')tags+='<span class="food-tag protein">💪高蛋白</span>';
+  return tags;
 }
 
-function buildSinglePlanHTML(carbG, proteinG, fatG, carbPct, proteinPct, fatPct, mode) {
-  const modeName = mode === 'lowcarb' ? '低碳减脂' : '高碳减脂';
-  const modeLabel = mode === 'lowcarb' ? 'tag-low' : 'tag-high';
+function initDishSelector(){
+  const groups={};
+  DISHES.forEach(d=>{if(!groups[d.cat])groups[d.cat]=[];groups[d.cat].push(d);});
+  let html='';
+  for(const [cat,name] of Object.entries(CAT_NAMES)){
+    const dishes=groups[cat]||[];
+    html+='<div class="dish-section"><h4>'+name+' <button class="sel-all-btn" onclick="toggleCat(\''+cat+'\')">全选/取消</button></h4><div class="dish-grid">';
+    dishes.forEach(d=>{
+      const sel=S.selectedDishes.has(d.id);
+      const tags=getDishTags(d);
+      html+='<div class="dish-chip'+(sel?' selected':'')+'" data-dish="'+d.id+'" data-cat="'+cat+'" onclick="toggleDish(\''+d.id+'\',this)"><div class="dc-check">'+(sel?'✓':'')+'</div><div class="dc-info"><div class="dc-name">'+d.icon+' '+d.name+tags+'</div><div class="dc-meta">🕐'+d.time+'分钟 · 🛢油'+d.oil+'g · 🍬糖'+d.sugar+'g</div></div><div class="dc-kcal">'+d.kcal+'</div></div>';
+    });
+    html+='</div></div>';
+  }
+  document.getElementById('dishSelector').innerHTML=html;
+}
 
-  // Meal distribution: breakfast 30%, lunch 40%, dinner 30%
-  const meals = [
-    { name:'🥣 早餐 (30%)', carb: carbG*0.3, protein: proteinG*0.3, fat: fatG*0.3 },
-    { name:'🍱 午餐 (40%)', carb: carbG*0.4, protein: proteinG*0.4, fat: fatG*0.4 },
-    { name:'🌙 晚餐 (30%)', carb: carbG*0.3, protein: proteinG*0.3, fat: fatG*0.3 },
+const DEFAULT_DISHES = ['bz1','bz2','bz5','rice','sweetpotato','tomatoegg','greenpepperpork','chickenbreast','garlicbroccoli','stirgreens','cucumbersalad','cabbagestir','scrambledeggplant','eggdrop soup','sn1','sn3'];
+DEFAULT_DISHES.forEach(id=>S.selectedDishes.add(id));
+
+function toggleDish(id,el){
+  if(S.selectedDishes.has(id)){S.selectedDishes.delete(id);el.classList.remove('selected');el.querySelector('.dc-check').textContent='';}
+  else{S.selectedDishes.add(id);el.classList.add('selected');el.querySelector('.dc-check').textContent='✓';}
+  document.getElementById('genPlanBtn').disabled=S.selectedDishes.size<6;
+}
+
+function toggleCat(cat){
+  const dishes=DISHES.filter(d=>d.cat===cat);
+  const allSelected=dishes.every(d=>S.selectedDishes.has(d.id));
+  if(allSelected){dishes.forEach(d=>{S.selectedDishes.delete(d.id);const el=document.querySelector('[data-dish="'+d.id+'"]');if(el){el.classList.remove('selected');el.querySelector('.dc-check').textContent='';}});}
+  else{dishes.forEach(d=>{S.selectedDishes.add(d.id);const el=document.querySelector('[data-dish="'+d.id+'"]');if(el){el.classList.add('selected');el.querySelector('.dc-check').textContent='✓';}});}
+  document.getElementById('genPlanBtn').disabled=S.selectedDishes.size<6;
+}
+
+function selectDiet(mode){
+  S.dietMode=mode;
+  document.querySelectorAll('.diet-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('diet-'+mode).classList.add('selected');
+  document.getElementById('genPlanBtn').disabled=S.selectedDishes.size<6;
+  switch(mode){
+    case'lowcarb':S.carbLow=1.5;S.carbHigh=2.0;S.proteinLow=1.5;S.proteinHigh=1.8;break;
+    case'highcarb':S.carbLow=2.5;S.carbHigh=3.5;S.proteinLow=1.1;S.proteinHigh=1.5;break;
+    case'cycle':S.carbLow=1.0;S.carbHigh=3.5;S.proteinLow=1.5;S.proteinHigh=1.5;break;
+  }
+  // If standard approach, bump protein
+  if(S.approach==='standard'){
+    S.proteinLow=Math.max(S.proteinLow,1.6);
+    S.proteinHigh=Math.max(S.proteinHigh,2.0);
+  }
+  // If rapid, lower protein slightly (not the focus)
+  if(S.approach==='rapid'){
+    S.proteinLow=Math.min(S.proteinLow,1.4);
+  }
+}
+
+// ===================== STEP 5: FIVE PLAN GENERATION =====================
+function getMyDishesSafe(cat){
+  let dishes=DISHES.filter(d=>d.cat===cat&&S.selectedDishes.has(d.id));
+  if(dishes.length===0&&ALWAYS_AVAILABLE[cat])dishes=[ALWAYS_AVAILABLE[cat]];
+  return dishes;
+}
+
+// Filter dishes based on approach
+function filterDishesByApproach(dishes){
+  if(S.approach==='rapid'){
+    // Prefer non-water-retaining dishes
+    const good=dishes.filter(d=>!d.waterRetain);
+    return good.length>0?good:dishes;
+  }
+  return dishes;
+}
+
+// Score dish for a particular plan type
+function dishScore(d,planType){
+  let score=1;
+  if(planType==='B'){if(d.proteinDensity==='high')score+=2;if(S.approach==='standard'&&d.cat==='meat')score+=1;}
+  if(planType==='C'){if(d.cat==='staple')score-=1;if(d.cat==='meat'||d.cat==='veggie')score+=1;}
+  if(planType==='D'){if(d.isSeafood)score+=3;if(d.cat==='veggie')score+=1;}
+  if(planType==='E'){if(d.cat==='snack'||d.id==='rice'||d.id==='noodles')score+=2;if(d.isSeafood)score-=1;}
+  if(S.approach==='rapid'&&d.waterRetain)score-=2;
+  if(S.approach==='rapid'&&d.highPotassium)score+=1;
+  return score;
+}
+
+function generateFivePlans(){
+  const planDefs=[
+    {id:'A',name:'均衡方案',desc:'标准三大营养素分配，三餐搭配均匀，适合大多数人',type:'A'},
+    {id:'B',name:'高蛋白方案',desc:'蛋白质占比提高，优先选择高蛋白肉类，适合保留肌肉',type:'B'},
+    {id:'C',name:'低碳水方案',desc:'碳水占比降低，增加蛋白质和蔬菜，适合胰岛素抵抗',type:'C'},
+    {id:'D',name:'地中海方案',desc:'以鱼虾海鲜为主，大量蔬菜，橄榄油烹调，适合追求健康',type:'D'},
+    {id:'E',name:'中式传统方案',desc:'传统家常搭配，包子饺子面条轮换，荤素均衡',type:'E'},
   ];
 
-  let html = `
-    <div class="result-box">
-      <div style="font-size:14px;color:var(--text-light);margin-bottom:4px;">每日摄入目标 <span class="tag ${modeLabel}">${modeName}</span></div>
-      <div class="big-num">${state.dailyTarget} <small>kcal/天</small></div>
-    </div>
+  const w=S.weight, target=S.dailyTarget;
+  let plansData=[];
 
-    <h3 style="margin-top:16px;">📊 三大宏量营养素</h3>
-    <div class="macro-grid">
-      <div class="macro-card carb">
-        <div class="label">碳水化合物</div>
-        <div class="value">${carbG.toFixed(0)}</div>
-        <div class="unit">g/天 · 占 ${carbPct}% · ${(carbG*4).toFixed(0)} kcal</div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill carb-fill" style="width:${carbPct}%"></div></div>
-      </div>
-      <div class="macro-card protein">
-        <div class="label">蛋白质</div>
-        <div class="value">${proteinG.toFixed(0)}</div>
-        <div class="unit">g/天 · 占 ${proteinPct}% · ${(proteinG*4).toFixed(0)} kcal</div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill protein-fill" style="width:${proteinPct}%"></div></div>
-      </div>
-      <div class="macro-card fat">
-        <div class="label">脂肪</div>
-        <div class="value">${fatG.toFixed(0)}</div>
-        <div class="unit">g/天 · 占 ${fatPct}% · ${(fatG*9).toFixed(0)} kcal</div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill fat-fill" style="width:${fatPct}%"></div></div>
-      </div>
-    </div>
+  planDefs.forEach(def=>{
+    let pg,cg,fg;
+    // Adjust macros per plan type
+    let pFactor=1.0, cFactor=1.0;
+    if(def.type==='B'){pFactor=1.2;cFactor=0.85;}
+    if(def.type==='C'){pFactor=1.05;cFactor=0.65;}
+    if(def.type==='D'||def.type==='E'){pFactor=1.0;cFactor=1.0;}
 
-    <h3 style="margin-top:20px;">🍽️ 三餐分配与食物推荐</h3>
-    ${buildMealPlanHTML(meals, carbG, proteinG, fatG)}
-  `;
-  return html;
+    pg=Math.round(w*((S.proteinLow+S.proteinHigh)/2)*pFactor*10)/10;
+    cg=Math.round(w*((S.carbLow+S.carbHigh)/2)*cFactor*10)/10;
+    const pk=pg*4, ck=cg*4;
+    const fk=Math.max(0,target-pk-ck), fgVal=Math.round(fk/9*10)/10;
+
+    const meals=buildPlanForType(pg,cg,fgVal,def.type);
+    const totalKcal=meals.reduce((s,m)=>s+m.mealKcal,0);
+    plansData.push({
+      id:def.id,name:def.name,desc:def.desc,type:def.type,
+      macros:{protein:pg,carb:cg,fat:fgVal},
+      totalKcal:Math.round(totalKcal),
+      meals:meals
+    });
+  });
+
+  S.fivePlans=plansData;
+  renderFivePlans(plansData);
 }
 
-function buildCyclePlanHTML(proteinG, lowCarbG, midCarbG, highCarbG, lowFatG, midFatG, highFatG) {
-  const days = [
-    { type:'low', name:'🔵 低碳日', carb:lowCarbG, protein:proteinG, fat:lowFatG, desc:'休息日/低强度活动日' },
-    { type:'mid', name:'🟡 中碳日', carb:midCarbG, protein:proteinG, fat:midFatG, desc:'中等强度训练日' },
-    { type:'high', name:'🟢 高碳日', carb:highCarbG, protein:proteinG, fat:highFatG, desc:'高强度力量训练日' },
+function buildPlanForType(targetProtein,targetCarb,targetFat,planType){
+  const meals=[
+    {name:'🌅 早餐',pct:0.30,pro:targetProtein*0.30,carb:targetCarb*0.30,fat:targetFat*0.30},
+    {name:'🍱 午餐',pct:0.40,pro:targetProtein*0.40,carb:targetCarb*0.40,fat:targetFat*0.40},
+    {name:'🌙 晚餐',pct:0.30,pro:targetProtein*0.30,carb:targetCarb*0.30,fat:targetFat*0.30},
   ];
 
-  const dayCarbPcts = days.map(d => Math.round(d.carb * 4 / state.dailyTarget * 100));
-  const dayProteinPct = Math.round(proteinG * 4 / state.dailyTarget * 100);
+  let bf=filterDishesByApproach(getMyDishesSafe('breakfast'));
+  let staples=filterDishesByApproach(getMyDishesSafe('staple'));
+  let meats=filterDishesByApproach(getMyDishesSafe('meat'));
+  let veggies=filterDishesByApproach(getMyDishesSafe('veggie'));
+  let soups=filterDishesByApproach(getMyDishesSafe('soup'));
+  let snacks=filterDishesByApproach(getMyDishesSafe('snack'));
 
-  let html = `
-    <div class="result-box">
-      <div style="font-size:14px;color:var(--text-light);margin-bottom:4px;">每日摄入目标 <span class="tag tag-mid">碳循环模式</span></div>
-      <div class="big-num">${state.dailyTarget} <small>kcal/天</small></div>
-    </div>
+  const labels=['A','B','C'];
+  const allMeals=[];
 
-    <div class="info-box">
-      <strong>🔄 碳循环说明：</strong>蛋白质每日保持恒定（${proteinG.toFixed(0)}g，占${dayProteinPct}%），低碳日与高碳日交替进行。<br>
-      <strong>推荐周期：</strong>低 → 低 → 中 → 高 → 低 → 低 → 中 → 高（或训练日=高碳，休息日=低碳）
-    </div>
+  meals.forEach(meal=>{
+    const mealKcalTarget=meal.pro*4+meal.carb*4+meal.fat*9;
+    const isBreakfast=meal.name.includes('早餐');
+    const isDinner=meal.name.includes('晚餐');
 
-    <div class="tabs">
-      ${days.map((d, i) => `<button class="tab-btn ${i===0?'active':''}" onclick="switchCycleTab(${i})">${d.name}<br><small>${d.desc}</small></button>`).join('')}
-    </div>
-  `;
+    // Sort dishes by plan type score
+    const sortByScore=(arr)=>arr.sort((a,b)=>dishScore(b,planType)-dishScore(a,planType));
+    const shuffledBf=sortByScore([...bf]);
+    const shuffledMeats=sortByScore([...meats]);
+    const shuffledVeggies=sortByScore([...veggies]);
+    const shuffledStaples=sortByScore([...staples]);
+    const shuffledSoups=sortByScore([...soups]);
+    const shuffledSnacks=sortByScore([...snacks]);
 
-  days.forEach((d, i) => {
-    const carbPct = dayCarbPcts[i];
-    const fatPct = Math.round(100 - carbPct - dayProteinPct);
-    const meals = [
-      { name:'🥣 早餐 (30%)', carb: d.carb*0.3, protein: d.protein*0.3, fat: d.fat*0.3 },
-      { name:'🍱 午餐 (40%)', carb: d.carb*0.4, protein: d.protein*0.4, fat: d.fat*0.4 },
-      { name:'🌙 晚餐 (30%)', carb: d.carb*0.3, protein: d.protein*0.3, fat: d.fat*0.3 },
-    ];
+    const options=[];
+    for(let opt=0;opt<3;opt++){
+      const dishes=[];
+      if(isBreakfast){
+        const pick=shuffledBf[opt%Math.max(1,shuffledBf.length)];
+        const scale=Math.round(Math.max(0.7,Math.min(1.8,mealKcalTarget/(pick?.kcal||300)))*10)/10;
+        dishes.push({...pick,multiplier:scale});
+      }else{
+        // Staple
+        let staplePick;
+        if(isDinner){
+          staplePick=shuffledStaples[opt%Math.max(1,shuffledStaples.length)];
+        }else{
+          if(opt===0)staplePick=staples.find(s=>s.id==='rice')||shuffledStaples[0];
+          else if(opt===2&&shuffledSnacks.length>0)staplePick=shuffledSnacks[opt%shuffledSnacks.length];
+          else staplePick=shuffledStaples[opt%Math.max(1,shuffledStaples.length)];
+        }
+        const sScale=Math.round(Math.max(0.7,Math.min(1.8,meal.carb*0.6/(staplePick?.carbs||30)))*10)/10;
+        dishes.push({...staplePick,multiplier:sScale});
 
-    html += `
-    <div class="tab-content ${i===0?'active':''}" id="cycleTab${i}">
-      <div class="macro-grid">
-        <div class="macro-card carb">
-          <div class="label">碳水化合物</div>
-          <div class="value">${d.carb.toFixed(0)}</div>
-          <div class="unit">g/天 · ${carbPct}%</div>
-        </div>
-        <div class="macro-card protein">
-          <div class="label">蛋白质</div>
-          <div class="value">${d.protein.toFixed(0)}</div>
-          <div class="unit">g/天 · ${dayProteinPct}%</div>
-        </div>
-        <div class="macro-card fat">
-          <div class="label">脂肪</div>
-          <div class="value">${d.fat.toFixed(0)}</div>
-          <div class="unit">g/天 · ${fatPct}%</div>
-        </div>
-      </div>
-      ${buildMealPlanHTML(meals, d.carb, d.protein, d.fat)}
-    </div>`;
+        // Meat
+        const meatPick=shuffledMeats[opt%Math.max(1,shuffledMeats.length)];
+        const usedPro=dishes.reduce((s,d)=>s+(d.pro||0)*(d.multiplier||1),0);
+        const mScale=Math.round(Math.max(0.7,Math.min(2.0,(meal.pro-usedPro)/(meatPick?.pro||15)))*10)/10;
+        dishes.push({...meatPick,multiplier:mScale});
+
+        // Veggie
+        const vegPick=shuffledVeggies[opt%Math.max(1,shuffledVeggies.length)];
+        dishes.push({...vegPick,multiplier:1.0});
+
+        // Soup occasionally
+        if(shuffledSoups.length>0&&opt===0&&Math.random()<0.5){
+          dishes.push({...shuffledSoups[0],multiplier:1.0});
+        }
+      }
+
+      const mealPro=dishes.reduce((s,d)=>s+(d.pro||0)*(d.multiplier||1),0);
+      const mealCarb=dishes.reduce((s,d)=>s+(d.carbs||0)*(d.multiplier||1),0);
+      const mealFat=dishes.reduce((s,d)=>s+(d.fat||0)*(d.multiplier||1),0);
+      const mealKcal=Math.round(mealPro*4+mealCarb*4+mealFat*9);
+
+      options.push({label:labels[opt],dishes,mealKcal,mealPro,mealCarb,mealFat});
+    }
+    allMeals.push({name:meal.name,options});
   });
 
-  return html;
+  return allMeals;
 }
 
-function buildMealPlanHTML(meals, totalCarb, totalProtein, totalFat) {
-  let html = '';
+// Build summary header (shared by all plans)
+function buildSummaryHeader(planData){
+  const mn={lowcarb:'🔴 低碳减脂',highcarb:'🟢 高碳减脂',cycle:'🔵 碳循环'};
+  const approachLabel=S.approach==='rapid'?'⚡ 快速减重':'🎯 规范减脂';
+  let h='<div class="card" style="background:#fffef5;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;"><h3 style="font-size:15px;">📋 我的减脂计划总览</h3><span style="font-size:10px;color:var(--text-light);">© 2026 瑞驰健康科技公司</span></div>';
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;">';
+  h+='<div><strong>【一、减脂基调】</strong>'+approachLabel+'<br>';
+  h+='<strong>【二、身体数据】</strong><br>';
+  h+='性别：'+(S.gender==='male'?'男':'女')+' ｜ 年龄：'+S.age+'岁 ｜ 身高：'+S.height+'cm ｜ 体重：'+S.weight+'kg<br>';
+  h+='BMR：<strong>'+S.bmr+'</strong> kcal/天 ｜ TDEE：<strong>'+S.tdee+'</strong> kcal/天</div>';
+  h+='<div><strong>【三、减重目标】</strong><br>';
+  h+='每日摄入：<strong>'+S.dailyTarget+'</strong> kcal ｜ 缺口：<strong>'+(S.tdee-S.dailyTarget)+'</strong> kcal ｜ 月减：<strong>'+S.monthlyLoss.toFixed(1)+'</strong> kg<br>';
+  h+='<strong>【四、饮食模式】</strong>'+mn[S.dietMode]+'</div>';
+  h+='</div></div>';
+  return h;
+}
 
-  meals.forEach((meal, idx) => {
-    // Pick representative foods for each category
-    const carbFoods = selectFoods(FOOD_DB.carbs, meal.carb, 3);
-    const proteinFoods = selectFoods(FOOD_DB.proteins, meal.protein, 4);
-    const veggieFoods = pickRandom(FOOD_DB.veggies, 3);
-    const fatFoods = selectFoods(FOOD_DB.fats, meal.fat, 1);
+function renderFivePlans(plansData){
+  document.getElementById('planSummaryHeader').innerHTML=buildSummaryHeader(plansData[0]);
 
-    // Compute grams for display
-    carbFoods.forEach(f => f._grams = Math.round(f.allocGrams));
-    proteinFoods.forEach(f => f._grams = Math.round(f.allocGrams));
-    veggieFoods.forEach(f => f._grams = 150);
-    fatFoods.forEach(f => f._grams = Math.round(f.allocGrams));
-
-    const allFoods = [...carbFoods, ...proteinFoods, ...veggieFoods, ...fatFoods];
-    let mealTotals = { carb:0, protein:0, fat:0, kcal:0 };
-    allFoods.forEach(f => {
-      mealTotals.carb += f.carb * f._grams / 100;
-      mealTotals.protein += f.protein * f._grams / 100;
-      mealTotals.fat += f.fat * f._grams / 100;
-      mealTotals.kcal += f.kcal * f._grams / 100;
-    });
-
-    // ---- DESKTOP TABLE ----
-    html += `
-    <h4 style="margin-top:16px;">${meal.name} — 碳水${meal.carb.toFixed(0)}g · 蛋白质${meal.protein.toFixed(0)}g · 脂肪${meal.fat.toFixed(0)}g</h4>
-    <div class="table-wrap">
-    <table class="meal-table">
-      <thead>
-        <tr><th>类别</th><th>推荐食物</th><th>重量</th><th>碳水(g)</th><th>蛋白质(g)</th><th>脂肪(g)</th><th>热量(kcal)</th></tr>
-      </thead>
-      <tbody>`;
-
-    carbFoods.forEach(f => {
-      html += `<tr>
-        <td><span class="tag tag-high">主食</span></td><td>${f.name}</td><td><strong>${f._grams}g</strong></td>
-        <td>${(f.carb*f._grams/100).toFixed(1)}</td><td>${(f.protein*f._grams/100).toFixed(1)}</td><td>${(f.fat*f._grams/100).toFixed(1)}</td><td>${Math.round(f.kcal*f._grams/100)}</td></tr>`;
-    });
-    proteinFoods.forEach(f => {
-      const dw = f.piece ? `${f._grams}g（约${Math.round(f._grams/f.pieceWeight)}${f.piece}）` : `${f._grams}g`;
-      html += `<tr>
-        <td><span class="tag tag-mid">蛋白质</span></td><td>${f.name}</td><td><strong>${dw}</strong></td>
-        <td>${(f.carb*f._grams/100).toFixed(1)}</td><td>${(f.protein*f._grams/100).toFixed(1)}</td><td>${(f.fat*f._grams/100).toFixed(1)}</td><td>${Math.round(f.kcal*f._grams/100)}</td></tr>`;
-    });
-    veggieFoods.forEach(f => {
-      html += `<tr>
-        <td><span class="tag tag-low">蔬菜</span></td><td>${f.name}</td><td><strong>${f._grams}g</strong></td>
-        <td>${(f.carb*f._grams/100).toFixed(1)}</td><td>${(f.protein*f._grams/100).toFixed(1)}</td><td>${(f.fat*f._grams/100).toFixed(1)}</td><td>${Math.round(f.kcal*f._grams/100)}</td></tr>`;
-    });
-    fatFoods.forEach(f => {
-      html += `<tr>
-        <td><span class="tag tag-mid">脂肪</span></td><td>${f.name}</td><td><strong>${f._grams}g</strong></td>
-        <td>${(f.carb*f._grams/100).toFixed(1)}</td><td>${(f.protein*f._grams/100).toFixed(1)}</td><td>${(f.fat*f._grams/100).toFixed(1)}</td><td>${Math.round(f.kcal*f._grams/100)}</td></tr>`;
-    });
-
-    html += `<tr style="font-weight:700;background:#f0f4f8;">
-        <td colspan="2">📊 本餐合计</td><td></td>
-        <td>${mealTotals.carb.toFixed(0)}</td><td>${mealTotals.protein.toFixed(0)}</td><td>${mealTotals.fat.toFixed(0)}</td><td>${Math.round(mealTotals.kcal)}</td></tr>
-      </tbody></table></div>`;
-
-    // ---- MOBILE FOOD CARDS ----
-    html += `<div class="food-cards">
-      <div class="meal-section-title">
-        <span>${meal.name}</span>
-        <span class="ms-macros">碳水${meal.carb.toFixed(0)}g · 蛋白${meal.protein.toFixed(0)}g · 脂肪${meal.fat.toFixed(0)}g</span>
-      </div>
-      <div class="food-cards-wrap">`;
-
-    const iconMap = { '主食':'🌾','肉类':'🥩','蛋类':'🥚','海鲜':'🦐','豆制品':'🫘','乳制品':'🥛','饮品':'🥤','蔬菜':'🥬','油脂':'🫒','坚果':'🥜','坚果酱':'🥜','水果':'🥑' };
-    allFoods.forEach(f => {
-      const icon = iconMap[f.category] || '🍽️';
-      html += `<div class="food-card">
-        <div class="fc-icon ${f.category}">${icon}</div>
-        <div class="fc-info">
-          <div class="fc-name">${f.name}</div>
-          <div class="fc-weight">${f._grams}g</div>
-        </div>
-        <div class="fc-macros">
-          <div class="fc-kcal">${Math.round(f.kcal*f._grams/100)} kcal</div>
-          <div class="fc-detail">C${(f.carb*f._grams/100).toFixed(0)} · P${(f.protein*f._grams/100).toFixed(0)} · F${(f.fat*f._grams/100).toFixed(0)}</div>
-        </div>
-      </div>`;
-    });
-
-    html += `</div>
-      <div class="meal-total-row">
-        <span>🔥 <strong>${Math.round(mealTotals.kcal)}</strong> kcal</span>
-        <span>🌾 ${mealTotals.carb.toFixed(0)}g</span>
-        <span>🥩 ${mealTotals.protein.toFixed(0)}g</span>
-        <span>🧈 ${mealTotals.fat.toFixed(0)}g</span>
-      </div>
-    </div>`;
+  let h='';
+  // Plan tabs (A/B/C/D/E)
+  h+='<div class="plan-tabs" id="planTabs">';
+  plansData.forEach((p,i)=>{
+    const isLocked=(i>0&&!IS_ADMIN);
+    h+='<button class="plan-tab'+(i===0?' active':'')+(isLocked?' locked':'')+'" onclick="switchPlan('+i+')">';
+    h+=p.id;
+    if(isLocked)h+='<span class="lock-icon">🔒</span>';
+    h+='<span class="plan-sub">'+p.name+'</span></button>';
   });
+  h+='</div>';
 
-  // Daily summary
-  const dailyCarb = meals.reduce((s,m) => s + m.carb, 0);
-  const dailyProtein = meals.reduce((s,m) => s + m.protein, 0);
-  const dailyFat = meals.reduce((s,m) => s + m.fat, 0);
-  const dailyKcal = dailyCarb * 4 + dailyProtein * 4 + dailyFat * 9;
+  // Plan panels
+  h+='<div id="planPanels">';
+  plansData.forEach((p,i)=>{
+    const isLocked=(i>0&&!IS_ADMIN);
+    h+='<div class="plan-panel'+(i===0?' active':'')+'" id="planPanel_'+i+'">';
+    // Plan desc
+    h+='<div class="info-box"><strong>'+p.name+' · '+p.id+'：</strong>'+p.desc+' ｜ 约 <strong>'+p.totalKcal+'</strong> kcal/天 ｜ 蛋白'+Math.round(p.macros.protein)+'g · 碳水'+Math.round(p.macros.carb)+'g · 脂肪'+Math.round(p.macros.fat)+'g</div>';
 
-  html += `
-    <div class="result-box" style="margin-top:16px;background:linear-gradient(135deg,#e3f2fd,#bbdefb);">
-      <div style="font-size:14px;color:var(--text-light);margin-bottom:4px;">📊 全天合计（理论值）</div>
-      <div style="display:flex;justify-content:center;gap:24px;flex-wrap:wrap;">
-        <span>🔥 <strong>${Math.round(dailyKcal)}</strong> kcal</span>
-        <span>🌾 碳水 <strong>${dailyCarb.toFixed(0)}</strong>g</span>
-        <span>🥩 蛋白质 <strong>${dailyProtein.toFixed(0)}</strong>g</span>
-        <span>🧈 脂肪 <strong>${dailyFat.toFixed(0)}</strong>g</span>
-      </div>
-    </div>
+    if(isLocked){
+      // Locked: show preview + overlay
+      h+='<div class="plan-locked-wrap">';
+      h+='<div class="plan-preview"><div class="pp-stats">';
+      h+='<div class="pp-stat"><div class="pp-val">'+p.totalKcal+'</div><div class="pp-label">kcal/天</div></div>';
+      h+='<div class="pp-stat"><div class="pp-val">'+Math.round(p.macros.protein)+'g</div><div class="pp-label">蛋白质</div></div>';
+      h+='<div class="pp-stat"><div class="pp-val">'+Math.round(p.macros.carb)+'g</div><div class="pp-label">碳水</div></div>';
+      h+='<div class="pp-stat"><div class="pp-val">'+Math.round(p.macros.fat)+'g</div><div class="pp-label">脂肪</div></div>';
+      h+='</div></div>';
+      // Generate meal content but blur it
+      h+='<div style="position:relative;overflow:hidden;max-height:200px;filter:blur(6px);-webkit-filter:blur(6px);opacity:.5;pointer-events:none;">';
+      h+=renderMealHTML(p);
+      h+='</div>';
+      h+='<div class="plan-locked-overlay" onclick="showLockModal()"><div class="lock-big">🔒</div><div class="lock-text">点击解锁完整方案</div><div class="lock-sub">入群免费获取B/C/D/E全部方案</div></div>';
+      h+='</div>';
+    }else{
+      // Unlocked (A plan or admin mode)
+      h+=renderMealHTML(p);
+    }
 
-    <div class="info-box mt-12">
-      <strong>📝 温馨提示：</strong><br>
-      ① 所有食材重量按<strong>生重</strong>计算，烹饪后重量会有变化<br>
-      ② 蔬菜类为自由搭配，热量低可适当增加<br>
-      ③ 建议使用食物秤称重1-2周，建立手感后可逐步减少<br>
-      ④ 每减重5kg，建议返回第一步重新计算BMR<br>
-      ⑤ 每日饮水 ≥ 体重(kg) × 30ml，保证充足睡眠
-    </div>
-  `;
+    h+='</div>';
+  });
+  h+='</div>';
 
-  return html;
-}
+  // Visual guide
+  h+='<div class="card mt-12" style="background:#fffef5;"><h3 style="font-size:14px;">🖐️ 不用秤 · 手测食物指南</h3><div class="viz-guide">';
+  h+='<div class="viz-card"><span class="viz-icon">👊</span><div class="viz-title">拳头=主食</div><div class="viz-detail">1拳头熟饭≈150g<br>1拳头红薯≈150g</div></div>';
+  h+='<div class="viz-card"><span class="viz-icon">🖐️</span><div class="viz-title">手掌=肉类</div><div class="viz-detail">1手掌鸡胸≈120g<br>厚度≈扑克牌</div></div>';
+  h+='<div class="viz-card"><span class="viz-icon">🤲</span><div class="viz-title">双手捧=蔬菜</div><div class="viz-detail">1捧叶菜≈200g<br>多多益善</div></div>';
+  h+='<div class="viz-card"><span class="viz-icon">👍</span><div class="viz-title">拇指=油脂</div><div class="viz-detail">1拇指尖≈5g油<br>=1茶匙</div></div>';
+  h+='<div class="viz-card"><span class="viz-icon">🥄</span><div class="viz-title">汤匙=调料</div><div class="viz-detail">1汤匙≈15g<br>生抽/醋≈10g</div></div>';
+  h+='</div></div>';
 
-// ===================== FOOD SELECTION HELPERS =====================
-function selectFoods(foodList, targetMacro, count) {
-  // targetMacro: target grams of the primary macro (carb for carbs list, protein for proteins, fat for fats)
-  // Distribute target across 'count' foods
-  const perFood = targetMacro / count;
-  const results = [];
-  const shuffled = [...foodList].sort(() => Math.random() - 0.5);
-
-  for (let i = 0; i < Math.min(count, shuffled.length); i++) {
-    const food = shuffled[i];
-    let primaryMacroPer100;
-    if (foodList === FOOD_DB.carbs) primaryMacroPer100 = food.carb;
-    else if (foodList === FOOD_DB.proteins) primaryMacroPer100 = food.protein;
-    else primaryMacroPer100 = food.fat;
-
-    const grams = Math.max(10, (perFood / primaryMacroPer100) * 100);
-    results.push({ ...food, allocGrams: grams });
+  if(S.approach==='rapid'){
+    h+='<div class="info-box mt-12"><strong>⚡ 快速减重执行要点：</strong>① 严格控盐≤5g/天 ② 每日饮水≥体重kg×30ml ③ 避免高钠食物 ④ 高钾蔬菜每餐必吃 ⑤ 每减3kg回来重算</div>';
+  }else{
+    h+='<div class="info-box mt-12"><strong>🎯 规范减脂执行要点：</strong>① 蛋白质1.6-2.2g/kg优先保证 ② 每周测腰围+臀围 ③ 力量训练不可少 ④ 缺口不超500kcal ⑤ 每减5kg回来重算 ⑥ 腰围男<85cm/女<80cm为健康目标</div>';
   }
-  return results;
+
+  document.getElementById('fivePlanContent').innerHTML=h;
+  document.getElementById('planResultCard').scrollIntoView({behavior:'smooth'});
+  if(window._hmt)_hmt.push(['_trackEvent','step5','generatePlans','模式:'+S.dietMode+','+S.approach]);
 }
 
-function pickRandom(list, count) {
-  const shuffled = [...list].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, Math.min(count, shuffled.length));
+function renderMealHTML(planData){
+  let h='';
+  let mealIdx=0;
+  planData.meals.forEach(meal=>{
+    const mealId='m'+mealIdx; mealIdx++;
+    h+='<div class="meal-day"><h4>'+meal.name+' <span style="font-size:12px;color:var(--text-light);font-weight:400;">三套子方案可选</span></h4>';
+    h+='<div class="option-tabs">';
+    meal.options.forEach((opt,i)=>{
+      h+='<button class="option-tab'+(i===0?' active':'')+'" onclick="switchMealOption(\''+mealId+'\','+i+')">'+opt.label+'方案<span class="opt-kcal"> ~'+opt.mealKcal+'kcal</span></button>';
+    });
+    h+='</div>';
+    meal.options.forEach((opt,i)=>{
+      h+='<div class="option-panel'+(i===0?' active':'')+'" id="'+mealId+'_'+i+'"><div class="meal-box">';
+      opt.dishes.forEach(d=>{
+        const m=d.multiplier||1;
+        const kcal=Math.round((d.kcal||0)*m);
+        const pro=Math.round((d.pro||0)*m*10)/10;
+        const carb=Math.round((d.carbs||0)*m*10)/10;
+        const fat=Math.round((d.fat||0)*m*10)/10;
+        let portion=m>=0.9&&m<=1.1?'（标准份）':m<0.9?'（小份，'+(m*100).toFixed(0)+'%）':'（加大份，'+(m*100).toFixed(0)+'%）';
+        const oilG=Math.round((d.oil||0)*m);
+        const sugarG=Math.round((d.sugar||0)*m);
+
+        let ingText='';
+        if(d.ingredients){
+          d.ingredients.split('·').forEach(part=>{
+            const t=part.trim();
+            const s=t.replace(/(\d+)g/g,(_,n)=>Math.round(parseInt(n)*m)+'g')
+              .replace(/(\d+)个/g,(_,n)=>Math.max(1,Math.round(parseInt(n)*m))+'个')
+              .replace(/(\d+)只/g,(_,n)=>Math.max(1,Math.round(parseInt(n)*m))+'只')
+              .replace(/(\d+)根/g,(_,n)=>Math.max(1,Math.round(parseInt(n)*m))+'根')
+              .replace(/(\d+)张/g,(_,n)=>Math.max(1,Math.round(parseInt(n)*m))+'张');
+            ingText+=s+' · ';
+          });
+          ingText=ingText.replace(/· $/,'');
+        }
+
+        let tips=(oilG>0?'🛢油'+oilG+'g（'+(oilG/5).toFixed(1)+'茶匙） ':'')+(sugarG>0?'🍬糖'+sugarG+'g ':'')+(d.time||'')+'分钟';
+        h+='<div class="meal-dish"><div class="md-icon">'+(d.icon||'🍽️')+'</div><div class="md-info"><div class="md-name">'+(d.name||'')+' <span style="font-weight:400;font-size:11px;color:var(--text-light);">'+portion+'</span></div><div class="md-ingredients">📋 '+ingText+'</div><div class="md-cooking">👨‍🍳 '+(d.cooking||'')+'</div><div style="font-size:10px;color:var(--text-light);margin-top:2px;">'+tips+'</div></div><div class="md-macros"><div class="md-kcal">'+kcal+'</div><div class="md-detail">C'+carb+' P'+pro+' F'+fat+'</div></div></div>';
+      });
+      h+='<div class="meal-total"><span>🔥 <strong>'+opt.mealKcal+'</strong> kcal</span><span>🌾'+opt.mealCarb.toFixed(0)+'g</span><span>🥩'+opt.mealPro.toFixed(0)+'g</span><span>🧈'+opt.mealFat.toFixed(0)+'g</span></div></div></div>';
+    });
+    h+='</div>';
+  });
+  return h;
 }
 
-function switchCycleTab(idx) {
-  document.querySelectorAll('#planResult .tab-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
-  document.querySelectorAll('#planResult .tab-content').forEach((c, i) => c.classList.toggle('active', i === idx));
+function switchPlan(idx){
+  if(idx>0&&!IS_ADMIN){showLockModal();return;}
+  document.querySelectorAll('#planTabs .plan-tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  document.querySelectorAll('#planPanels .plan-panel').forEach((p,i)=>p.classList.toggle('active',i===idx));
+}
+
+function switchMealOption(mealId,idx){
+  const parent=document.getElementById(mealId+'_'+idx).parentNode;
+  parent.querySelectorAll('.option-tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  parent.querySelectorAll('.option-panel').forEach((p,i)=>p.classList.toggle('active',i===idx));
+}
+
+// ===================== STEP 6: EXERCISE =====================
+function renderExerciseStep(){
+  // Recommend mode based on approach
+  if(S.approach==='rapid'&&S.exMode==='gym')S.exMode='cardio';
+  if(S.approach==='standard'&&S.exMode==='health')S.exMode='cardio';
+
+  let note='';
+  if(S.approach==='rapid'){
+    note='<div class="info-box"><strong>⚡ 快速减重运动建议：</strong>以有氧运动为主，最大化热量消耗。推荐<strong>积极有氧模式</strong>或养生模式，配合日常多走动。</div>';
+  }else{
+    note='<div class="success-box"><strong>🎯 规范减脂运动建议：</strong>有氧+力量训练结合，<strong>推荐健身房进阶模式</strong>。力量训练是保留肌肉的关键——北京体育大学2024年研究证实：500kcal缺口+运动可完全防止肌肉流失。</div>';
+  }
+  document.getElementById('approachExNote').innerHTML=note;
+
+  const mode=EXERCISES[S.exMode];
+  const w=S.weight;
+  let h='';
+
+  // Mode cards
+  h+='<div class="ex-mode-cards">';
+  Object.entries(EXERCISES).forEach(([k,v])=>{
+    const rec=(S.approach==='rapid'&&k==='cardio')||(S.approach==='standard'&&k==='gym');
+    h+='<div class="ex-card'+(k===S.exMode?' selected':'')+'" onclick="switchExMode(\''+k+'\')"><span class="ex-icon">'+v.items[0].icon+'</span><div class="ex-name">'+v.name+(rec?' ⭐':'')+'</div><div class="ex-desc">'+v.desc+'</div></div>';
+  });
+  h+='</div>';
+
+  // Items
+  h+='<div class="ex-list" id="exList">';
+  mode.items.forEach(e=>{
+    const hours=parseFloat(e.unit.match(/(\d+)/)?.[1]||30)/60;
+    const kcal=Math.round(w*e.mets*hours*(e.unit.includes('组')?1.5:1));
+    h+='<div class="ex-item"><span class="ex-i">'+e.icon+'</span><div class="ex-info"><div class="ex-title">'+e.name+'</div><div class="ex-how">'+e.how+' · '+e.freq+' · '+e.unit+'</div></div><div class="ex-burn">~'+kcal+'<small>kcal</small></div></div>';
+  });
+  h+='</div>';
+
+  // Total
+  const totalKcal=mode.items.reduce((s,e)=>{
+    const hours=parseFloat(e.unit.match(/(\d+)/)?.[1]||30)/60;
+    return s+Math.round(w*e.mets*hours*(e.unit.includes('组')?1.5:1));
+  },0);
+  h+='<div class="result-box" style="background:linear-gradient(135deg,#fff3e0,#ffe0b2);margin-top:8px;"><div style="font-size:12px;color:var(--text-light);">运动额外消耗（按推荐频率）</div><div style="font-size:22px;font-weight:700;color:#E65100;">~'+totalKcal+' <small>kcal/周</small></div><div style="font-size:11px;">≈每天多消耗 <strong>'+(totalKcal/7).toFixed(0)+' kcal</strong>，每月多减 <strong>'+(totalKcal*4/7700).toFixed(1)+' kg</strong></div></div>';
+
+  document.getElementById('exerciseContent').innerHTML=h;
+}
+
+function switchExMode(mode){
+  S.exMode=mode;
+  renderExerciseStep();
+}
+
+// ===================== FINAL OUTPUT =====================
+function generateFinal(){
+  if(!S.fivePlans){alert('⚠️ 请先生成饮食计划！');goStep(5);return;}
+  document.getElementById('finalResult').classList.remove('hidden');
+
+  // Combine plan A summary + exercise summary
+  const planA=S.fivePlans[0];
+  const mode=EXERCISES[S.exMode];
+  const w=S.weight;
+  const totalExKcal=mode.items.reduce((s,e)=>{
+    const hours=parseFloat(e.unit.match(/(\d+)/)?.[1]||30)/60;
+    return s+Math.round(w*e.mets*hours*(e.unit.includes('组')?1.5:1));
+  },0);
+
+  let h='';
+  h+='<div class="card" style="background:#fffef5;">';
+  h+='<h3>📋 方案总览</h3>';
+  h+='<div style="font-size:12px;line-height:1.8;">';
+  h+='<strong>减脂基调：</strong>'+(S.approach==='rapid'?'⚡ 快速减重':'🎯 规范减脂')+'<br>';
+  h+='<strong>每日摄入：</strong>'+S.dailyTarget+' kcal ｜ <strong>每日缺口：</strong>'+(S.tdee-S.dailyTarget)+' kcal<br>';
+  h+='<strong>饮食方案：</strong>A.均衡方案（免费）｜ B-E方案可入群解锁<br>';
+  h+='<strong>运动模式：</strong>'+mode.name+' ｜ 每周额外消耗 ~'+totalExKcal+' kcal<br>';
+  h+='<strong>预计月减：</strong>饮食'+(S.monthlyLoss).toFixed(1)+'kg + 运动'+(totalExKcal*4/7700).toFixed(1)+'kg ≈ <strong style="color:#E65100;">'+(S.monthlyLoss+totalExKcal*4/7700).toFixed(1)+' kg</strong>';
+  h+='</div></div>';
+  h+='<div class="info-box"><strong>💡 提示：</strong>上方步骤5可查看A方案完整饮食计划（含三餐×3套子方案）。步骤6可切换运动模式。B/C/D/E方案点击后入群免费获取。</div>';
+
+  document.getElementById('finalContent').innerHTML=h;
+  document.getElementById('finalResult').scrollIntoView({behavior:'smooth'});
+  if(window._hmt)_hmt.push(['_trackEvent','final','generate','完成_'+S.approach]);
+}
+
+// ===================== MODALS =====================
+function showLockModal(){
+  document.getElementById('lockModal').classList.add('show');
+  if(window._hmt)_hmt.push(['_trackEvent','modal','lock','show']);
+}
+function showMoreModal(){
+  document.getElementById('moreModal').classList.add('show');
+  if(window._hmt)_hmt.push(['_trackEvent','modal','more','show']);
+}
+function closeModal(id){
+  document.getElementById(id).classList.remove('show');
+}
+
+// Close modal on overlay click
+document.addEventListener('click',function(e){
+  if(e.target.classList.contains('modal-overlay')){e.target.classList.remove('show');}
+});
+
+// ===================== EXPORT =====================
+function buildPlanText(){
+  if(!S.fivePlans){alert('⚠️ 请先生成饮食计划');return'';}
+  const planA=S.fivePlans[0];
+  let txt='';
+  const bar='═'.repeat(42);
+  const thin='─'.repeat(36);
+
+  txt+=bar+'\n';
+  txt+='   🥗 我的科学减脂计划（A.均衡方案）\n';
+  txt+=bar+'\n\n';
+
+  txt+='【一、减脂基调】'+(S.approach==='rapid'?'快速减重':'规范减脂')+'\n\n';
+
+  txt+='【二、身体数据】\n';
+  txt+='  性别：'+(S.gender==='male'?'男':'女')+' ｜ 年龄：'+S.age+'岁 ｜ 身高：'+S.height+'cm ｜ 体重：'+S.weight+'kg\n';
+  txt+='  BMR：'+S.bmr+' kcal/天 ｜ TDEE：'+S.tdee+' kcal/天\n\n';
+
+  txt+='【三、减重目标】\n';
+  txt+='  每日摄入：'+S.dailyTarget+' kcal ｜ 每日缺口：'+(S.tdee-S.dailyTarget)+' kcal\n';
+  txt+='  预计每月减重：'+S.monthlyLoss.toFixed(1)+' kg\n\n';
+
+  const modeNames={lowcarb:'低碳减脂',highcarb:'高碳减脂',cycle:'碳循环'};
+  txt+='【四、饮食模式】'+modeNames[S.dietMode]+'\n';
+  txt+='  蛋白质：'+Math.round(planA.macros.protein)+'g/天 ｜ 碳水：'+Math.round(planA.macros.carb)+'g/天 ｜ 脂肪：'+Math.round(planA.macros.fat)+'g/天\n\n';
+
+  // Meals from plan A
+  txt+='【五、每日三餐（A方案 · 均衡）】\n\n';
+  planA.meals.forEach(meal=>{
+    txt+=thin+'\n  '+meal.name+'\n'+thin+'\n';
+    meal.options.forEach((opt,i)=>{
+      txt+='  ▸ '+opt.label+'方案 (~'+opt.mealKcal+' kcal)\n';
+      opt.dishes.forEach(d=>{
+        const m=d.multiplier||1;
+        const kcal=Math.round((d.kcal||0)*m);
+        txt+='    ● '+(d.icon||'')+' '+(d.name||'')+'  ['+kcal+' kcal]\n';
+        if(d.ingredients)txt+='      食材：'+d.ingredients.replace(/·/g,'|')+'\n';
+      });
+      txt+='    📊 C'+opt.mealCarb.toFixed(0)+'g P'+opt.mealPro.toFixed(0)+'g F'+opt.mealFat.toFixed(0)+'g\n';
+    });
+    txt+='\n';
+  });
+
+  txt+='【六、运动计划】'+EXERCISES[S.exMode].name+'\n';
+  EXERCISES[S.exMode].items.forEach(e=>{
+    const hours=parseFloat(e.unit.match(/(\d+)/)?.[1]||30)/60;
+    const kcal=Math.round(S.weight*e.mets*hours*(e.unit.includes('组')?1.5:1));
+    txt+='  ▸ '+e.name+'：'+e.unit+' ｜ '+e.how+' ｜ ~'+kcal+' kcal\n';
+  });
+
+  txt+='\n'+bar+'\n  © 2026 瑞驰健康科技公司 版权所有\n'+bar;
+  txt+='\n\n💡 想要B/C/D/E完整方案及更多家常菜替代做法？请入群免费获取。';
+  return txt;
+}
+
+function copyPlanText(){
+  if(!S.fivePlans){alert('⚠️ 请先生成饮食计划！');return;}
+  const text=buildPlanText();
+  if(!text)return;
+  navigator.clipboard.writeText(text).then(()=>{
+    if(window._hmt)_hmt.push(['_trackEvent','export','copyText']);
+    alert('✅ A方案已复制！\n\n可粘贴到：\n• 微信/QQ发送给别人\n• Word文档(Ctrl+V)\n• 手机备忘录\n• 任意笔记软件\n\n💡 B/C/D/E方案入群免费获取。');
+  }).catch(()=>alert('复制失败，请手动选择文字复制'));
 }
 
 // ===================== INIT =====================
-document.getElementById('lossPace').addEventListener('change', updateLossCalc);
-// Allow pressing Enter in step 1 to calculate
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && document.getElementById('step1').classList.contains('active')) {
-    e.preventDefault();
-    calcBMR();
-  }
+document.getElementById('lossPace').addEventListener('change',updateLossCalc);
+// Set default diet mode
+document.getElementById('diet-lowcarb').classList.add('selected');
+document.getElementById('genPlanBtn').disabled=S.selectedDishes.size<6;
+initDishSelector();
+updateDeficitOptions();
+
+// Keyboard shortcut
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&document.getElementById('step2').classList.contains('active')){e.preventDefault();calcBMR();}
 });
 </script>
 </body>
